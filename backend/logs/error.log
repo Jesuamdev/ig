@@ -47,3 +47,4 @@
 [2026-03-26 19:39:54] ERROR: enviarRecordatorio:
 [2026-03-26 19:47:29] ERROR: WA error: (#131030) Recipient phone number not in allowed list
 [2026-03-26 19:47:29] ERROR: enviarRecordatorio:
+[2026-03-26 20:14:32] ERROR: WA error: Error validating access token: Session has expired on Thursday, 26-Mar-26 18:00:00 PDT. The current time is Thursday, 26-Mar-26 18:14:32 PDT.
