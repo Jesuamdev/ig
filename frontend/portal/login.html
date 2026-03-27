@@ -54,7 +54,7 @@ input:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(37,99,235,.1)}
   </div>
 </div>
 <script>
-const API = localStorage.getItem('ce_api') || 'http://localhost:3001';
+const API = localStorage.getItem('ce_api') || 'https://ig-production-d1bf.up.railway.app';
 document.getElementById('password').addEventListener('keydown', e => e.key==='Enter' && login());
 async function login() {
   const email = document.getElementById('email').value.trim();
