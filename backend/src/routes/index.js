@@ -384,7 +384,7 @@ router.post('/portal/solicitudes/:id/subir', authenticate, soloCliente, ...(() =
         if (io) {
           // FIX: alias corregido de "a" a "ag" para la tabla agentes
           const { rows: cInfo } = await query(`
-            SELECT c.nombre, c.apellido, c.agente_id, ag.telefono AS agente_telefono
+            SELECT c.nombre, c.apellido, c.agente_id
             FROM clientes c
             LEFT JOIN agentes ag ON c.agente_id = ag.id
             WHERE c.id = $1
