@@ -81,7 +81,7 @@ router.post('/clientes/:id/notas', authenticate, soloAgente, async (req, res) =>
 // ── ETIQUETAS EN CONVERSACIONES ───────────────────────────────────────────────
 router.put('/conversaciones/:id/etiquetas', authenticate, soloAgente, async (req, res) => {
   try {
-    const { etiquetas } = req.body; // array de strings
+    const { etiquetas } = req.body;
     const { rows } = await query(`
       UPDATE conversaciones SET etiquetas = $1 WHERE id = $2 RETURNING *
     `, [etiquetas || [], req.params.id]);
@@ -124,7 +124,6 @@ router.get('/pagos/:id/recordatorios', authenticate, soloAgente, async (req, res
 router.post('/pagos/:id/programar-recordatorio', authenticate, soloAgente, async (req, res) => {
   try {
     const { dias_antes, canales = ['whatsapp', 'email'], mensaje_personalizado } = req.body;
-    // Guardar config de recordatorio en detalles del pago
     const { rows } = await query(`
       UPDATE pagos SET
         recordatorio_enviado = FALSE,
@@ -132,7 +131,6 @@ router.post('/pagos/:id/programar-recordatorio', authenticate, soloAgente, async
       WHERE id = $2 RETURNING *
     `, [`\n[Recordatorio programado: ${dias_antes} días antes, canales: ${canales.join(',')}]`, req.params.id]);
 
-    // Registrar en actividad
     await query(`INSERT INTO actividad (agente_id, cliente_id, accion, detalles)
       SELECT $1, p.cliente_id, 'recordatorio.programado', $2
       FROM pagos p WHERE p.id = $3`,
@@ -142,7 +140,6 @@ router.post('/pagos/:id/programar-recordatorio', authenticate, soloAgente, async
   } catch (err) { res.status(500).json({ message: err.message }); }
 });
 
-// Ejecutar recordatorios manualmente ahora
 router.post('/recordatorios/ejecutar', authenticate, soloAgente, async (req, res) => {
   try {
     await procesarRecordatorios();
@@ -204,18 +201,15 @@ router.post('/whatsapp/contacto/:contactoId/convertir-cliente', authenticate, so
   if (!nombre || !email) return res.status(400).json({ message: 'Nombre y email son requeridos' });
 
   try {
-    // Obtener datos del contacto
     const { rows: cRows } = await query(`SELECT * FROM contactos WHERE id = $1`, [contactoId]);
     if (!cRows.length) return res.status(404).json({ message: 'Contacto no encontrado' });
     const contacto = cRows[0];
 
-    // Si ya tiene cliente vinculado, retornarlo
     if (contacto.cliente_id) {
       const { rows: existing } = await query(`SELECT id, nombre, apellido, email FROM clientes WHERE id = $1`, [contacto.cliente_id]);
       return res.json({ cliente: existing[0], ya_existia: true });
     }
 
-    // Crear cliente
     const { rows: clienteRows } = await query(`
       INSERT INTO clientes (nombre, apellido, email, telefono, pais, origen, agente_id)
       VALUES ($1, $2, $3, $4, $5, 'whatsapp', $6)
@@ -224,17 +218,12 @@ router.post('/whatsapp/contacto/:contactoId/convertir-cliente', authenticate, so
     `, [nombre, apellido || '', email.toLowerCase().trim(), contacto.telefono, pais || null, req.user.id]);
     const cliente = clienteRows[0];
 
-    // Vincular contacto al cliente
     await query(`UPDATE contactos SET cliente_id = $1, nombre = $2 WHERE id = $3`,
       [cliente.id, `${nombre} ${apellido || ''}`.trim(), contactoId]);
 
-    // Vincular todos los archivos de ese contacto al cliente
     await query(`UPDATE archivos SET cliente_id = $1 WHERE contacto_id = $2 AND cliente_id IS NULL`, [cliente.id, contactoId]);
-
-    // Vincular mensajes de conversaciones de ese contacto
     await query(`UPDATE conversaciones SET cliente_id = $1 WHERE contacto_id = $2`, [cliente.id, contactoId]);
 
-    // Activar portal si se solicitó
     let passwordGenerado = null;
     if (activar_portal) {
       const pass = password || generarPass();
@@ -258,7 +247,6 @@ function generarPass() {
   const c = 'ABCDEFGHJKMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789!@#';
   return Array.from({ length: 10 }, () => c[Math.floor(Math.random() * c.length)]).join('');
 }
-
 
 router.get('/contactos', authenticate, soloAgente, async (req, res) => {
   const { buscar } = req.query;
@@ -394,11 +382,14 @@ router.post('/portal/solicitudes/:id/subir', authenticate, soloCliente, ...(() =
         // Emitir notificación en tiempo real al panel del agente
         const io = req.app.get('io');
         if (io) {
+          // FIX: alias corregido de "a" a "ag" para la tabla agentes
           const { rows: cInfo } = await query(`
-            SELECT c.nombre, c.apellido, c.agente_id, a.telefono AS agente_telefono
+            SELECT c.nombre, c.apellido, c.agente_id, ag.telefono AS agente_telefono
             FROM clientes c
             LEFT JOIN agentes ag ON c.agente_id = ag.id
-            WHERE c.id=$1`, [clienteId]);
+            WHERE c.id = $1
+          `, [clienteId]);
+
           const cliente = cInfo[0];
           const payload = {
             tipo:             'archivo_portal',
