@@ -1,0 +1,1164 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Editor de Chatbot — 33Solutions</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&display=swap');
+*{box-sizing:border-box;margin:0;padding:0;user-select:none}
+:root{
+  --green:#25D366;--green-dark:#128C7E;
+  --bg:#f0f2f5;--white:#fff;--border:#e5e7eb;
+  --text:#111827;--text2:#6b7280;--text3:#9ca3af;
+  --blue:#3b82f6;--purple:#8b5cf6;--amber:#f59e0b;
+  --red:#ef4444;--pink:#ec4899;--teal:#14b8a6;
+  --shadow:0 2px 8px rgba(0,0,0,.1);
+  --font:'DM Sans',sans-serif;
+}
+body{font-family:var(--font);background:var(--bg);display:flex;flex-direction:column;height:100vh;overflow:hidden}
+
+/* TOP BAR */
+.topbar{height:56px;background:var(--white);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:12px;padding:0 16px;flex-shrink:0;z-index:100}
+.tb-back{display:flex;align-items:center;gap:6px;color:var(--text2);font-size:13px;cursor:pointer;padding:6px 10px;border-radius:6px;border:1px solid var(--border);background:transparent;font-family:var(--font)}
+.tb-back:hover{background:var(--bg)}
+.tb-title{font-size:15px;font-weight:600;flex:1}
+.tb-status{font-size:12px;color:var(--text3);display:flex;align-items:center;gap:6px}
+.status-dot{width:7px;height:7px;border-radius:50%;background:var(--text3)}
+.status-dot.active{background:var(--green)}
+.tb-actions{display:flex;gap:8px}
+.btn{display:inline-flex;align-items:center;gap:6px;padding:8px 14px;border-radius:8px;font-size:13px;font-family:var(--font);font-weight:500;cursor:pointer;border:none;transition:all .15s}
+.btn-primary{background:var(--green);color:white}
+.btn-primary:hover{background:var(--green-dark)}
+.btn-ghost{background:transparent;color:var(--text2);border:1px solid var(--border)}
+.btn-ghost:hover{background:var(--bg)}
+.btn-purple{background:var(--purple);color:white}
+.btn-purple:hover{background:#7c3aed}
+
+/* WORKSPACE */
+.workspace{flex:1;display:flex;overflow:hidden}
+
+/* PALETTE */
+.palette{width:220px;background:var(--white);border-right:1px solid var(--border);display:flex;flex-direction:column;flex-shrink:0;overflow-y:auto}
+.palette-section{padding:12px 14px}
+.palette-title{font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.6px;margin-bottom:10px}
+.node-template{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:8px;cursor:grab;border:1.5px solid transparent;transition:all .15s;margin-bottom:6px}
+.node-template:hover{border-color:currentColor;background:rgba(0,0,0,.03)}
+.node-template:active{cursor:grabbing}
+.nt-icon{width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0}
+.nt-info{flex:1}
+.nt-name{font-size:12px;font-weight:600}
+.nt-desc{font-size:10px;color:var(--text3);margin-top:1px;line-height:1.3}
+
+/* CANVAS */
+.canvas-wrap{flex:1;position:relative;overflow:hidden;background:#f8fafc}
+.canvas-bg{position:absolute;inset:0;background-image:radial-gradient(#d1d5db 1px,transparent 1px);background-size:24px 24px}
+#canvas{position:absolute;inset:0;width:100%;height:100%}
+.canvas-controls{position:absolute;bottom:20px;left:50%;transform:translateX(-50%);display:flex;gap:6px;background:var(--white);border:1px solid var(--border);border-radius:10px;padding:6px;box-shadow:var(--shadow)}
+.cc-btn{width:32px;height:32px;border:none;background:transparent;cursor:pointer;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:14px;color:var(--text2);transition:background .1s}
+.cc-btn:hover{background:var(--bg)}
+.zoom-label{font-size:12px;color:var(--text2);padding:0 8px;display:flex;align-items:center}
+.canvas-hint{position:absolute;top:16px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,.6);color:white;font-size:12px;padding:6px 14px;border-radius:20px;pointer-events:none;opacity:0;transition:opacity .3s}
+.canvas-hint.show{opacity:1}
+
+/* NODES */
+.flow-node{position:absolute;min-width:200px;background:var(--white);border:2px solid var(--border);border-radius:12px;box-shadow:var(--shadow);cursor:grab;transition:box-shadow .15s,border-color .15s}
+.flow-node:hover{box-shadow:0 4px 16px rgba(0,0,0,.15)}
+.flow-node.selected{border-color:var(--blue);box-shadow:0 0 0 3px rgba(59,130,246,.15)}
+.flow-node:active{cursor:grabbing}
+.node-header{padding:10px 12px;border-radius:10px 10px 0 0;display:flex;align-items:center;gap:8px}
+.node-header-icon{font-size:16px}
+.node-header-title{font-size:13px;font-weight:600;flex:1}
+.node-header-del{width:20px;height:20px;border:none;background:rgba(0,0,0,.1);color:white;border-radius:4px;cursor:pointer;font-size:13px;display:flex;align-items:center;justify-content:center;line-height:1;opacity:.6;transition:opacity .1s}
+.node-header-del:hover{opacity:1}
+.node-body{padding:10px 12px;font-size:12px;color:var(--text2);line-height:1.4;min-height:28px}
+.node-options{padding:0 12px 10px;display:flex;flex-direction:column;gap:4px}
+.node-option{padding:5px 10px;background:var(--bg);border-radius:6px;font-size:11px;color:var(--text2);display:flex;align-items:center;gap:6px}
+.node-option::before{content:'';width:6px;height:6px;border-radius:50%;background:var(--border);flex-shrink:0}
+
+/* PORTS */
+.port{width:14px;height:14px;border-radius:50%;border:2px solid var(--white);position:absolute;cursor:crosshair;z-index:10;transition:transform .15s}
+.port:hover{transform:scale(1.4)}
+.port-in{background:#6b7280;top:50%;transform:translateY(-50%);left:-7px}
+.port-in:hover{transform:translateY(-50%) scale(1.4)}
+.port-out{background:var(--green);bottom:12px;right:-7px}
+
+/* PROPERTIES PANEL */
+.props-panel{width:280px;background:var(--white);border-left:1px solid var(--border);display:flex;flex-direction:column;flex-shrink:0;overflow-y:auto}
+.props-header{padding:14px 16px;border-bottom:1px solid var(--border);font-size:14px;font-weight:600}
+.props-body{padding:14px 16px;flex:1;overflow-y:auto}
+.prop-group{margin-bottom:16px}
+.prop-label{font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.4px;margin-bottom:6px;display:block}
+.prop-input{width:100%;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:8px 10px;font-size:13px;font-family:var(--font);color:var(--text);outline:none;transition:border .2s;user-select:text}
+.prop-input:focus{border-color:var(--blue)}
+textarea.prop-input{resize:vertical;min-height:80px;line-height:1.5}
+.prop-hint{font-size:11px;color:var(--text3);margin-top:4px;line-height:1.4}
+.prop-tags{display:flex;flex-direction:column;gap:4px}
+.prop-tag-row{display:flex;gap:6px}
+.prop-tag-row input{flex:1;background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:6px 8px;font-size:12px;font-family:var(--font);outline:none;user-select:text}
+.prop-tag-row input:focus{border-color:var(--blue)}
+.prop-tag-del{width:26px;background:transparent;border:1px solid var(--border);border-radius:6px;cursor:pointer;color:var(--red);font-size:14px}
+.add-opt-btn{width:100%;padding:7px;border:1.5px dashed var(--border);border-radius:6px;background:transparent;font-size:12px;color:var(--text3);cursor:pointer;font-family:var(--font);transition:all .15s;margin-top:4px}
+.add-opt-btn:hover{border-color:var(--blue);color:var(--blue)}
+.btn-save-node{width:100%;margin-top:8px}
+.props-empty{padding:32px 16px;text-align:center;color:var(--text3);font-size:13px;line-height:1.6}
+
+/* CLAUDE CONFIG */
+.claude-badge{display:inline-flex;align-items:center;gap:5px;background:#f3e8ff;color:#7c3aed;padding:3px 8px;border-radius:20px;font-size:11px;font-weight:600;margin-bottom:10px}
+.ai-test-box{background:#f8fafc;border:1px solid var(--border);border-radius:8px;padding:10px;margin-top:8px}
+.ai-test-result{font-size:12px;color:var(--text2);margin-top:8px;line-height:1.5;padding:8px;background:var(--white);border-radius:6px;border:1px solid var(--border);min-height:40px;white-space:pre-wrap;user-select:text}
+
+/* CONNECTIONS SVG */
+#svg-layer{position:absolute;inset:0;pointer-events:none;overflow:visible}
+.connection{fill:none;stroke:#9ca3af;stroke-width:2;pointer-events:all;cursor:pointer}
+.connection:hover{stroke:var(--red)}
+.connection.selected{stroke:var(--blue)}
+.conn-active{fill:none;stroke:var(--green);stroke-width:2;stroke-dasharray:6 3;animation:dash .5s linear infinite;pointer-events:none}
+@keyframes dash{to{stroke-dashoffset:-9}}
+
+/* TOAST */
+.toast{position:fixed;bottom:24px;right:24px;background:#1f2937;color:white;border-radius:10px;padding:12px 18px;font-size:13px;z-index:9999;transform:translateY(60px);opacity:0;transition:.3s;box-shadow:var(--shadow)}
+.toast.show{transform:translateY(0);opacity:1}
+.toast.ok{background:#15803d}
+.toast.err{background:#b91c1c}
+
+/* TEMPLATES MODAL */
+.tpl-modal{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:2000;display:none;align-items:center;justify-content:center}
+.tpl-modal.show{display:flex}
+.tpl-box{background:var(--white);border-radius:16px;padding:28px;width:700px;max-width:95vw;max-height:85vh;overflow-y:auto}
+.tpl-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:16px}
+.tpl-card{border:2px solid var(--border);border-radius:10px;padding:16px;cursor:pointer;transition:all .15s}
+.tpl-card:hover{border-color:var(--blue);background:#eff6ff}
+.tpl-icon{font-size:28px;margin-bottom:8px}
+.tpl-name{font-size:13px;font-weight:600;margin-bottom:4px}
+.tpl-desc{font-size:11px;color:var(--text3);line-height:1.4}
+</style>
+</head>
+<body>
+
+<!-- TOP BAR -->
+<div class="topbar">
+  <button class="tb-back" onclick="volverPanel()">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+    Panel
+  </button>
+  <div class="tb-title" id="tb-bot-name">Cargando chatbot...</div>
+  <div class="tb-status">
+    <div class="status-dot" id="status-dot"></div>
+    <span id="status-label">Inactivo</span>
+  </div>
+  <div class="tb-actions">
+    <button class="btn btn-ghost" onclick="mostrarTemplates()">📋 Plantillas</button>
+    <button class="btn btn-ghost" onclick="probarBot()">▶ Probar</button>
+    <button class="btn btn-ghost" onclick="toggleActivo()">⚡ Activar/Pausar</button>
+    <button class="btn btn-primary" onclick="guardarTodo()">💾 Guardar</button>
+  </div>
+</div>
+
+<div class="workspace">
+
+<!-- PALETTE -->
+<div class="palette">
+  <div class="palette-section">
+    <div class="palette-title">Nodos básicos</div>
+
+    <div class="node-template" draggable="true" data-tipo="inicio" style="color:#15803d" ondragstart="dragStart(event,'inicio')">
+      <div class="nt-icon" style="background:#dcfce7">🚀</div>
+      <div class="nt-info"><div class="nt-name">Inicio</div><div class="nt-desc">Punto de entrada del flujo</div></div>
+    </div>
+
+    <div class="node-template" draggable="true" data-tipo="mensaje" style="color:#1d4ed8" ondragstart="dragStart(event,'mensaje')">
+      <div class="nt-icon" style="background:#dbeafe">💬</div>
+      <div class="nt-info"><div class="nt-name">Mensaje</div><div class="nt-desc">Enviar texto al usuario</div></div>
+    </div>
+
+    <div class="node-template" draggable="true" data-tipo="pregunta" style="color:#92400e" ondragstart="dragStart(event,'pregunta')">
+      <div class="nt-icon" style="background:#fef3c7">❓</div>
+      <div class="nt-info"><div class="nt-name">Pregunta</div><div class="nt-desc">Enviar opciones y esperar respuesta</div></div>
+    </div>
+
+    <div class="node-template" draggable="true" data-tipo="condicion" style="color:#7c3aed" ondragstart="dragStart(event,'condicion')">
+      <div class="nt-icon" style="background:#f3e8ff">🔀</div>
+      <div class="nt-info"><div class="nt-name">Condición</div><div class="nt-desc">Ramificar según respuesta</div></div>
+    </div>
+
+    <div class="node-template" draggable="true" data-tipo="fin" style="color:#b91c1c" ondragstart="dragStart(event,'fin')">
+      <div class="nt-icon" style="background:#fee2e2">🔴</div>
+      <div class="nt-info"><div class="nt-name">Fin</div><div class="nt-desc">Terminar el flujo</div></div>
+    </div>
+  </div>
+
+  <div class="palette-section" style="border-top:1px solid var(--border)">
+    <div class="palette-title">Inteligencia artificial</div>
+
+    <div class="node-template" draggable="true" data-tipo="claude" style="color:#7c3aed" ondragstart="dragStart(event,'claude')">
+      <div class="nt-icon" style="background:linear-gradient(135deg,#f3e8ff,#dbeafe)">🤖</div>
+      <div class="nt-info"><div class="nt-name">Claude AI</div><div class="nt-desc">Respuesta inteligente con IA</div></div>
+    </div>
+
+    <div class="node-template" draggable="true" data-tipo="ia_intent" style="color:#0f766e" ondragstart="dragStart(event,'ia_intent')">
+      <div class="nt-icon" style="background:#ccfbf1">🎯</div>
+      <div class="nt-info"><div class="nt-name">Detectar Intención</div><div class="nt-desc">Clasifica el mensaje del usuario</div></div>
+    </div>
+
+    <div class="node-template" draggable="true" data-tipo="traducir" style="color:#0369a1" ondragstart="dragStart(event,'traducir')">
+      <div class="nt-icon" style="background:#e0f2fe">🌐</div>
+      <div class="nt-info"><div class="nt-name">Traducir</div><div class="nt-desc">Auto-traducir al español</div></div>
+    </div>
+  </div>
+
+  <div class="palette-section" style="border-top:1px solid var(--border)">
+    <div class="palette-title">Acciones</div>
+
+    <div class="node-template" draggable="true" data-tipo="asignar" style="color:#15803d" ondragstart="dragStart(event,'asignar')">
+      <div class="nt-icon" style="background:#dcfce7">👤</div>
+      <div class="nt-info"><div class="nt-name">Asignar Agente</div><div class="nt-desc">Transferir a un agente humano</div></div>
+    </div>
+
+    <div class="node-template" draggable="true" data-tipo="etiquetar" style="color:#0369a1" ondragstart="dragStart(event,'etiquetar')">
+      <div class="nt-icon" style="background:#e0f2fe">🏷️</div>
+      <div class="nt-info"><div class="nt-name">Etiquetar</div><div class="nt-desc">Agregar etiqueta al contacto</div></div>
+    </div>
+
+    <div class="node-template" draggable="true" data-tipo="esperar" style="color:#6b7280" ondragstart="dragStart(event,'esperar')">
+      <div class="nt-icon" style="background:#f3f4f6">⏱️</div>
+      <div class="nt-info"><div class="nt-name">Esperar</div><div class="nt-desc">Pausa antes del siguiente paso</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- CANVAS -->
+<div class="canvas-wrap" id="canvas-wrap"
+  ondrop="dropNode(event)" ondragover="event.preventDefault()"
+  onmousedown="canvasMouseDown(event)"
+  onmousemove="canvasMouseMove(event)"
+  onmouseup="canvasMouseUp(event)">
+
+  <div class="canvas-bg"></div>
+  <div id="canvas">
+    <svg id="svg-layer"><defs>
+      <marker id="arrow" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+        <polygon points="0 0, 10 3.5, 0 7" fill="#9ca3af"/>
+      </marker>
+      <marker id="arrow-green" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+        <polygon points="0 0, 10 3.5, 0 7" fill="var(--green)"/>
+      </marker>
+    </defs></svg>
+  </div>
+
+  <div class="canvas-hint" id="canvas-hint">Arrastra nodos del panel izquierdo aquí</div>
+
+  <div class="canvas-controls">
+    <button class="cc-btn" onclick="zoom(-0.1)" title="Alejar">−</button>
+    <span class="zoom-label" id="zoom-label">100%</span>
+    <button class="cc-btn" onclick="zoom(0.1)" title="Acercar">+</button>
+    <button class="cc-btn" onclick="resetZoom()" title="Restablecer">⊡</button>
+    <button class="cc-btn" onclick="centrarCanvas()" title="Centrar">◎</button>
+  </div>
+</div>
+
+<!-- PROPERTIES PANEL -->
+<div class="props-panel" id="props-panel">
+  <div class="props-header">Propiedades</div>
+  <div class="props-body" id="props-body">
+    <div class="props-empty">
+      Selecciona un nodo para editar sus propiedades
+      <br><br>
+      <small>💡 Arrastra desde el panel izquierdo para agregar nodos</small>
+    </div>
+  </div>
+</div>
+
+</div><!-- /workspace -->
+
+<!-- TEMPLATES MODAL -->
+<div class="tpl-modal" id="tpl-modal" onclick="if(event.target===this)this.classList.remove('show')">
+<div class="tpl-box">
+  <div style="display:flex;justify-content:space-between;align-items:center">
+    <div style="font-size:18px;font-weight:700">Plantillas de Chatbot</div>
+    <button onclick="document.getElementById('tpl-modal').classList.remove('show')" style="background:none;border:none;font-size:22px;cursor:pointer;color:var(--text3)">×</button>
+  </div>
+  <div style="font-size:13px;color:var(--text2);margin-top:4px">Comienza rápido con una plantilla prediseñada</div>
+  <div class="tpl-grid">
+    <div class="tpl-card" onclick="usarTemplate('bienvenida')">
+      <div class="tpl-icon">👋</div>
+      <div class="tpl-name">Bienvenida</div>
+      <div class="tpl-desc">Saluda al usuario y muestra opciones del menú principal</div>
+    </div>
+    <div class="tpl-card" onclick="usarTemplate('calificacion')">
+      <div class="tpl-icon">🎯</div>
+      <div class="tpl-name">Calificación de Lead</div>
+      <div class="tpl-desc">Recopila nombre, email, interés y presupuesto del prospecto</div>
+    </div>
+    <div class="tpl-card" onclick="usarTemplate('soporte')">
+      <div class="tpl-icon">🛠️</div>
+      <div class="tpl-name">Soporte con IA</div>
+      <div class="tpl-desc">Responde preguntas automáticamente con Claude AI</div>
+    </div>
+    <div class="tpl-card" onclick="usarTemplate('faq')">
+      <div class="tpl-icon">📚</div>
+      <div class="tpl-name">FAQ Inteligente</div>
+      <div class="tpl-desc">Detecta la intención y responde preguntas frecuentes</div>
+    </div>
+    <div class="tpl-card" onclick="usarTemplate('cita')">
+      <div class="tpl-icon">📅</div>
+      <div class="tpl-name">Agendar Cita</div>
+      <div class="tpl-desc">Recopila datos para agendar una cita o reunión</div>
+    </div>
+    <div class="tpl-card" onclick="usarTemplate('encuesta')">
+      <div class="tpl-icon">📊</div>
+      <div class="tpl-name">Encuesta de Satisfacción</div>
+      <div class="tpl-desc">Mide la satisfacción del cliente al cerrar conversación</div>
+    </div>
+  </div>
+</div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ══════════════════════════════════════════════════════════════════════════════
+// CONFIG
+// ══════════════════════════════════════════════════════════════════════════════
+const params   = new URLSearchParams(location.search);
+const botId    = params.get('id');
+const API_BASE = params.get('api') || 'http://localhost:3001';
+const TOKEN    = localStorage.getItem('token');
+
+let botData      = null;
+let nodos        = [];
+let conexiones   = [];
+let selectedNode = null;
+let selectedConn = null;
+let scale        = 1;
+let panX = 0, panY = 0;
+let draggingNode = null;
+let dragOffX = 0, dragOffY = 0;
+let connectingFrom = null; // { nodeId, portEl }
+let tempLine = null;
+let isPanning = false;
+let panStart = { x: 0, y: 0 };
+let agentes = [];
+
+// ── NODE CONFIGS ─────────────────────────────────────────────────────────────
+const NODE_DEFS = {
+  inicio:    { label:'Inicio',            icon:'🚀', color:'#dcfce7', textColor:'#15803d', hasOut: true,  hasIn: false },
+  mensaje:   { label:'Mensaje',           icon:'💬', color:'#dbeafe', textColor:'#1d4ed8', hasOut: true,  hasIn: true  },
+  pregunta:  { label:'Pregunta',          icon:'❓', color:'#fef3c7', textColor:'#92400e', hasOut: true,  hasIn: true  },
+  condicion: { label:'Condición',         icon:'🔀', color:'#f3e8ff', textColor:'#7c3aed', hasOut: true,  hasIn: true  },
+  fin:       { label:'Fin',               icon:'🔴', color:'#fee2e2', textColor:'#b91c1c', hasOut: false, hasIn: true  },
+  claude:    { label:'Claude AI',         icon:'🤖', color:'linear-gradient(135deg,#f3e8ff,#dbeafe)', textColor:'#7c3aed', hasOut: true, hasIn: true },
+  ia_intent: { label:'Detectar Intención',icon:'🎯', color:'#ccfbf1', textColor:'#0f766e', hasOut: true,  hasIn: true  },
+  traducir:  { label:'Traducir',          icon:'🌐', color:'#e0f2fe', textColor:'#0369a1', hasOut: true,  hasIn: true  },
+  asignar:   { label:'Asignar Agente',    icon:'👤', color:'#dcfce7', textColor:'#15803d', hasOut: false, hasIn: true  },
+  etiquetar: { label:'Etiquetar',         icon:'🏷️', color:'#e0f2fe', textColor:'#0369a1', hasOut: true,  hasIn: true  },
+  esperar:   { label:'Esperar',           icon:'⏱️', color:'#f3f4f6', textColor:'#4b5563', hasOut: true,  hasIn: true  },
+};
+
+// ══════════════════════════════════════════════════════════════════════════════
+// INIT
+// ══════════════════════════════════════════════════════════════════════════════
+async function init() {
+  if (!botId) { mostrarHint(); return; }
+  await cargarAgentes();
+  await cargarBot();
+  mostrarHint(false);
+}
+
+async function cargarBot() {
+  try {
+    const r = await apiFetch(`/api/chatbots/${botId}`);
+    if (!r.ok) throw new Error('No se pudo cargar el chatbot');
+    botData = await r.json();
+    document.getElementById('tb-bot-name').textContent = botData.nombre;
+    document.getElementById('status-dot').className = 'status-dot' + (botData.activo ? ' active' : '');
+    document.getElementById('status-label').textContent = botData.activo ? 'Activo' : 'Inactivo';
+    nodos      = (botData.nodos || []).map(n => ({ ...n, x: n.posicion_x || randX(), y: n.posicion_y || randY() }));
+    conexiones = (botData.conexiones || []).map(c => ({ ...c }));
+    renderAll();
+    centrarCanvas();
+  } catch(e) { toast('Error cargando chatbot: ' + e.message, 'err'); }
+}
+
+async function cargarAgentes() {
+  try {
+    const r = await apiFetch('/api/agentes');
+    if (r.ok) agentes = await r.json();
+  } catch {}
+}
+
+function randX() { return 100 + Math.random() * 400; }
+function randY() { return 100 + Math.random() * 300; }
+
+// ══════════════════════════════════════════════════════════════════════════════
+// RENDER
+// ══════════════════════════════════════════════════════════════════════════════
+function renderAll() {
+  const canvas = document.getElementById('canvas');
+  // Remove old nodes (keep SVG)
+  canvas.querySelectorAll('.flow-node').forEach(n => n.remove());
+  nodos.forEach(n => renderNode(n));
+  renderConnections();
+}
+
+function renderNode(n) {
+  const def = NODE_DEFS[n.tipo] || NODE_DEFS.mensaje;
+  const cfg = n.configuracion || {};
+
+  const el = document.createElement('div');
+  el.className = 'flow-node';
+  el.id = 'node-' + n.id;
+  el.style.cssText = `left:${n.x}px;top:${n.y}px`;
+
+  // Preview text
+  let preview = '';
+  if (n.tipo === 'claude') {
+    preview = cfg.prompt ? cfg.prompt.substring(0,60) + '...' : '(configura el prompt en propiedades)';
+  } else if (n.tipo === 'esperar') {
+    preview = cfg.segundos ? `Esperar ${cfg.segundos}s` : 'Configura el tiempo';
+  } else if (n.tipo === 'ia_intent') {
+    preview = 'Detecta: ' + (cfg.intenciones?.join(', ') || 'todas las intenciones');
+  } else {
+    preview = cfg.mensaje ? cfg.mensaje.substring(0,80) : `(${def.label})`;
+  }
+
+  const opts = (cfg.opciones || []).slice(0,4);
+
+  el.innerHTML = `
+    <div class="node-header" style="background:${def.color};color:${def.textColor}">
+      <span class="node-header-icon">${def.icon}</span>
+      <span class="node-header-title">${n.nombre || def.label}</span>
+      <button class="node-header-del" onclick="eliminarNodo('${n.id}',event)" title="Eliminar">×</button>
+    </div>
+    <div class="node-body">${preview}</div>
+    ${opts.length ? `<div class="node-options">${opts.map(o=>`<div class="node-option">${o}</div>`).join('')}</div>` : ''}
+    ${def.hasIn  ? `<div class="port port-in"  data-node="${n.id}" data-dir="in"  title="Conectar entrada"></div>` : ''}
+    ${def.hasOut ? `<div class="port port-out" data-node="${n.id}" data-dir="out" title="Conectar salida"></div>` : ''}
+  `;
+
+  // Events
+  el.addEventListener('mousedown', e => nodeMouseDown(e, n.id));
+  el.addEventListener('click', e => { if (!e._wasDrag) seleccionarNodo(n.id); });
+
+  // Port events
+  el.querySelectorAll('.port').forEach(p => {
+    p.addEventListener('mousedown', e => portMouseDown(e, n.id, p.dataset.dir));
+  });
+
+  document.getElementById('canvas').appendChild(el);
+}
+
+function renderConnections() {
+  const svg = document.getElementById('svg-layer');
+  svg.querySelectorAll('.connection,.conn-active,.temp-line').forEach(el => el.remove());
+
+  conexiones.forEach(c => {
+    const fromEl = document.getElementById('node-' + c.nodo_origen_id);
+    const toEl   = document.getElementById('node-' + c.nodo_destino_id);
+    if (!fromEl || !toEl) return;
+
+    const path = createPath(fromEl, toEl);
+    path.classList.add('connection');
+    path.dataset.connId = c.id;
+    path.setAttribute('marker-end', 'url(#arrow)');
+    if (c.condicion) {
+      // Add label
+      const mid = pathMidpoint(fromEl, toEl);
+      const lbl = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+      lbl.setAttribute('x', mid.x); lbl.setAttribute('y', mid.y);
+      lbl.setAttribute('font-size', '10'); lbl.setAttribute('fill', '#6b7280');
+      lbl.setAttribute('text-anchor', 'middle'); lbl.setAttribute('dy', '-4');
+      lbl.textContent = c.condicion.substring(0, 20);
+      svg.appendChild(lbl);
+    }
+    path.addEventListener('click', e => seleccionarConexion(c.id, e));
+    svg.appendChild(path);
+  });
+}
+
+function createPath(fromEl, toEl) {
+  const fr = getPortPos(fromEl, 'out');
+  const to = getPortPos(toEl, 'in');
+  return buildBezier(fr, to);
+}
+
+function buildBezier(fr, to, extraClass = '') {
+  const dx = Math.abs(to.x - fr.x);
+  const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+  const c1x = fr.x + Math.max(dx * 0.5, 60);
+  const c2x = to.x - Math.max(dx * 0.5, 60);
+  path.setAttribute('d', `M ${fr.x} ${fr.y} C ${c1x} ${fr.y}, ${c2x} ${to.y}, ${to.x} ${to.y}`);
+  if (extraClass) path.setAttribute('class', extraClass);
+  return path;
+}
+
+function getPortPos(nodeEl, dir) {
+  const rect = nodeEl.getBoundingClientRect();
+  const wrap = document.getElementById('canvas-wrap').getBoundingClientRect();
+  const nx = (rect.left - wrap.left - panX) / scale;
+  const ny = (rect.top  - wrap.top  - panY) / scale;
+  const nw = rect.width / scale;
+  const nh = rect.height / scale;
+  if (dir === 'out') return { x: nx + nw + 7, y: ny + nh - 18 };
+  return { x: nx - 7, y: ny + nh / 2 };
+}
+
+function pathMidpoint(fromEl, toEl) {
+  const fr = getPortPos(fromEl, 'out');
+  const to = getPortPos(toEl, 'in');
+  return { x: (fr.x + to.x) / 2, y: (fr.y + to.y) / 2 };
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// DRAG NODES
+// ══════════════════════════════════════════════════════════════════════════════
+function nodeMouseDown(e, nodeId) {
+  if (e.target.closest('.port,.node-header-del')) return;
+  e.stopPropagation();
+  draggingNode = nodeId;
+  const el = document.getElementById('node-' + nodeId);
+  const rect = el.getBoundingClientRect();
+  dragOffX = e.clientX - rect.left;
+  dragOffY = e.clientY - rect.top;
+  el._movedDist = 0;
+}
+
+function canvasMouseDown(e) {
+  if (e.target === document.getElementById('canvas-wrap') || e.target.classList.contains('canvas-bg')) {
+    isPanning = true;
+    panStart = { x: e.clientX - panX, y: e.clientY - panY };
+    seleccionarNodo(null);
+  }
+}
+
+function canvasMouseMove(e) {
+  if (draggingNode) {
+    const wrap = document.getElementById('canvas-wrap').getBoundingClientRect();
+    const el = document.getElementById('node-' + draggingNode);
+    const x = (e.clientX - wrap.left - dragOffX - panX) / scale;
+    const y = (e.clientY - wrap.top  - dragOffY - panY) / scale;
+    el.style.left = x + 'px';
+    el.style.top  = y + 'px';
+    el._movedDist = (el._movedDist || 0) + 1;
+    const n = nodos.find(n => n.id === draggingNode);
+    if (n) { n.x = x; n.y = y; }
+    renderConnections();
+  }
+  if (isPanning) {
+    panX = e.clientX - panStart.x;
+    panY = e.clientY - panStart.y;
+    applyTransform();
+  }
+  if (connectingFrom) {
+    const wrap = document.getElementById('canvas-wrap').getBoundingClientRect();
+    const x = (e.clientX - wrap.left - panX) / scale;
+    const y = (e.clientY - wrap.top  - panY) / scale;
+    if (tempLine) tempLine.remove();
+    const fr = portAbsPos(connectingFrom.portEl);
+    tempLine = buildBezier(fr, { x, y }, 'conn-active temp-line');
+    document.getElementById('svg-layer').appendChild(tempLine);
+  }
+}
+
+function canvasMouseUp(e) {
+  if (draggingNode) {
+    const el = document.getElementById('node-' + draggingNode);
+    if ((el._movedDist || 0) < 3) el._wasDrag = false;
+    else el._wasDrag = true;
+    draggingNode = null;
+  }
+  if (isPanning) isPanning = false;
+  if (connectingFrom) {
+    // Check if dropped on a port-in
+    const target = document.elementFromPoint(e.clientX, e.clientY);
+    if (target?.classList.contains('port') && target.dataset.dir === 'in') {
+      const toNodeId = target.dataset.node;
+      if (toNodeId !== connectingFrom.nodeId) {
+        crearConexion(connectingFrom.nodeId, toNodeId);
+      }
+    }
+    if (tempLine) { tempLine.remove(); tempLine = null; }
+    connectingFrom = null;
+  }
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// CONNECTIONS
+// ══════════════════════════════════════════════════════════════════════════════
+function portMouseDown(e, nodeId, dir) {
+  if (dir !== 'out') return;
+  e.stopPropagation();
+  connectingFrom = { nodeId, portEl: e.target };
+}
+
+function portAbsPos(portEl) {
+  const rect = portEl.getBoundingClientRect();
+  const wrap = document.getElementById('canvas-wrap').getBoundingClientRect();
+  return {
+    x: (rect.left + rect.width/2  - wrap.left - panX) / scale,
+    y: (rect.top  + rect.height/2 - wrap.top  - panY) / scale,
+  };
+}
+
+async function crearConexion(fromId, toId) {
+  // Evitar duplicados
+  if (conexiones.find(c => c.nodo_origen_id === fromId && c.nodo_destino_id === toId)) return;
+
+  const condicion = prompt('Condición para esta conexión (opcional):\nEj: "1", "Sí", "información", vacío = siempre') || '';
+
+  try {
+    const r = await apiFetch(`/api/chatbots/${botId}/conexiones`, {
+      method: 'POST',
+      body: JSON.stringify({ nodo_origen_id: fromId, nodo_destino_id: toId, condicion: condicion || null }),
+    });
+    if (r.ok) {
+      const conn = await r.json();
+      conexiones.push(conn);
+      renderConnections();
+      toast('Conexión creada');
+    }
+  } catch(e) { toast('Error: ' + e.message, 'err'); }
+}
+
+async function eliminarConexion(connId) {
+  if (!confirm('¿Eliminar esta conexión?')) return;
+  await apiFetch(`/api/chatbots/${botId}/conexiones/${connId}`, { method:'DELETE' });
+  conexiones = conexiones.filter(c => c.id !== connId);
+  renderConnections();
+  selectedConn = null;
+  toast('Conexión eliminada');
+}
+
+function seleccionarConexion(connId, e) {
+  e.stopPropagation();
+  selectedConn = connId;
+  const conn = conexiones.find(c => c.id === connId);
+  const props = document.getElementById('props-body');
+  props.innerHTML = `
+    <div style="margin-bottom:12px;font-size:12px;color:var(--text2)">Conexión seleccionada</div>
+    <div class="prop-group">
+      <label class="prop-label">Condición (respuesta que activa)</label>
+      <input class="prop-input" id="conn-cond" value="${conn?.condicion||''}" placeholder="vacío = siempre">
+      <div class="prop-hint">El usuario debe escribir exactamente esto para seguir por esta ruta</div>
+    </div>
+    <button class="btn btn-primary btn-save-node" onclick="guardarConexion('${connId}')">Guardar condición</button>
+    <button class="btn btn-ghost btn-save-node" style="margin-top:8px;color:var(--red)" onclick="eliminarConexion('${connId}')">🗑️ Eliminar conexión</button>
+  `;
+}
+
+async function guardarConexion(connId) {
+  const cond = document.getElementById('conn-cond')?.value || '';
+  await apiFetch(`/api/chatbots/${botId}/conexiones/${connId}`, {
+    method: 'PUT',
+    body: JSON.stringify({ condicion: cond || null }),
+  }).catch(() => {});
+  const conn = conexiones.find(c => c.id === connId);
+  if (conn) conn.condicion = cond;
+  renderConnections();
+  toast('Condición guardada');
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// DROP FROM PALETTE
+// ══════════════════════════════════════════════════════════════════════════════
+let dragTipo = null;
+function dragStart(e, tipo) { dragTipo = tipo; }
+
+async function dropNode(e) {
+  e.preventDefault();
+  const tipo = dragTipo;
+  if (!tipo || !botId) return;
+
+  const wrap = document.getElementById('canvas-wrap').getBoundingClientRect();
+  const x = (e.clientX - wrap.left - panX) / scale;
+  const y = (e.clientY - wrap.top  - panY) / scale;
+
+  const def = NODE_DEFS[tipo];
+  const nombre = def.label;
+  const cfg = {};
+  if (tipo === 'inicio')  cfg.mensaje = '¡Hola! 👋 Bienvenido. ¿En qué puedo ayudarte?';
+  if (tipo === 'fin')     cfg.mensaje = 'Gracias por contactarnos. ¡Hasta pronto! 😊';
+  if (tipo === 'esperar') cfg.segundos = 3;
+  if (tipo === 'claude')  cfg.prompt = 'Eres un asistente amable de servicio al cliente. Responde de forma concisa y útil.';
+  if (tipo === 'ia_intent') cfg.intenciones = ['consulta','queja','precio','soporte'];
+
+  try {
+    const r = await apiFetch(`/api/chatbots/${botId}/nodos`, {
+      method: 'POST',
+      body: JSON.stringify({ tipo, nombre, configuracion: cfg, posicion_x: Math.round(x), posicion_y: Math.round(y) }),
+    });
+    if (!r.ok) throw new Error('Error al crear nodo');
+    const nodo = await r.json();
+    nodo.x = x; nodo.y = y;
+    nodos.push(nodo);
+    renderNode(nodo);
+    seleccionarNodo(nodo.id);
+
+    // Si es primer nodo, establecer como inicio
+    if (nodos.length === 1 && tipo === 'inicio') {
+      await apiFetch(`/api/chatbots/${botId}`, { method:'PUT', body: JSON.stringify({ nodo_inicio_id: nodo.id }) });
+    }
+    toast('Nodo agregado');
+  } catch(e) { toast(e.message, 'err'); }
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// PROPERTIES PANEL
+// ══════════════════════════════════════════════════════════════════════════════
+function seleccionarNodo(nodeId) {
+  document.querySelectorAll('.flow-node').forEach(el => el.classList.remove('selected'));
+  selectedNode = nodeId;
+  if (!nodeId) {
+    document.getElementById('props-body').innerHTML = `<div class="props-empty">Selecciona un nodo para editar sus propiedades<br><br><small>💡 Arrastra desde el panel izquierdo para agregar nodos</small></div>`;
+    return;
+  }
+  document.getElementById('node-' + nodeId)?.classList.add('selected');
+  const n = nodos.find(n => n.id === nodeId);
+  if (!n) return;
+  renderPropsPanel(n);
+}
+
+function renderPropsPanel(n) {
+  const def = NODE_DEFS[n.tipo] || {};
+  const cfg = n.configuracion || {};
+  const props = document.getElementById('props-body');
+
+  const isNodoInicio = botData?.nodo_inicio_id === n.id;
+
+  let html = `
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:16px">
+      <span style="font-size:20px">${def.icon}</span>
+      <span style="font-size:13px;font-weight:600;color:${def.textColor}">${def.label}</span>
+      ${isNodoInicio ? '<span style="background:#dcfce7;color:#15803d;font-size:10px;padding:2px 6px;border-radius:10px;font-weight:600">INICIO</span>' : ''}
+    </div>
+    <div class="prop-group">
+      <label class="prop-label">Nombre del nodo</label>
+      <input class="prop-input" id="pn-nombre" value="${n.nombre||''}" placeholder="${def.label}">
+    </div>
+  `;
+
+  // Tipo-specific props
+  if (['inicio','mensaje','fin'].includes(n.tipo)) {
+    html += `
+    <div class="prop-group">
+      <label class="prop-label">Mensaje a enviar</label>
+      <textarea class="prop-input" id="pn-mensaje" placeholder="Escribe el mensaje que recibirá el usuario...">${cfg.mensaje||''}</textarea>
+      <div class="prop-hint">Puedes usar {{nombre}}, {{telefono}} como variables</div>
+    </div>`;
+  }
+
+  if (n.tipo === 'pregunta') {
+    html += `
+    <div class="prop-group">
+      <label class="prop-label">Pregunta</label>
+      <textarea class="prop-input" id="pn-mensaje" placeholder="¿Cuál es tu consulta?">${cfg.mensaje||''}</textarea>
+    </div>
+    <div class="prop-group">
+      <label class="prop-label">Opciones de respuesta</label>
+      <div class="prop-tags" id="opciones-container">
+        ${(cfg.opciones||[]).map((o,i)=>`
+          <div class="prop-tag-row">
+            <input value="${o}" placeholder="Opción ${i+1}" oninput="actualizarOpcion(${i},this.value)">
+            <button class="prop-tag-del" onclick="eliminarOpcion(${i})">×</button>
+          </div>
+        `).join('')}
+      </div>
+      <button class="add-opt-btn" onclick="agregarOpcion()">+ Agregar opción</button>
+      <div class="prop-hint">Las opciones se envían como lista numerada. El usuario responde con el número o el texto.</div>
+    </div>`;
+  }
+
+  if (n.tipo === 'claude') {
+    html += `
+    <div class="claude-badge">🤖 Powered by Claude AI (Anthropic)</div>
+    <div class="prop-group">
+      <label class="prop-label">System Prompt (instrucciones para Claude)</label>
+      <textarea class="prop-input" id="pn-prompt" rows="5" placeholder="Ej: Eres un asistente amable de CorpEase. Responde preguntas sobre servicios de contabilidad y formación de LLC. Sé conciso y profesional.">${cfg.prompt||''}</textarea>
+      <div class="prop-hint">Claude recibirá el mensaje del usuario y este prompt para generar la respuesta.</div>
+    </div>
+    <div class="prop-group">
+      <label class="prop-label">Usar base de conocimiento</label>
+      <select class="prop-input" id="pn-use-bc">
+        <option value="1" ${cfg.usar_bc!==false?'selected':''}>Sí — incluir documentos de la base de conocimiento</option>
+        <option value="0" ${cfg.usar_bc===false?'selected':''}>No — solo usar el prompt</option>
+      </select>
+    </div>
+    <div class="prop-group">
+      <label class="prop-label">Temperatura (creatividad)</label>
+      <input class="prop-input" type="range" id="pn-temp" min="0" max="1" step="0.1" value="${cfg.temperatura||0.7}" oninput="document.getElementById('temp-val').textContent=this.value">
+      <div style="font-size:12px;color:var(--text2);margin-top:4px">Valor: <span id="temp-val">${cfg.temperatura||0.7}</span> (0=preciso, 1=creativo)</div>
+    </div>
+    <div class="ai-test-box">
+      <label class="prop-label" style="margin-bottom:6px">Probar Claude ahora</label>
+      <input class="prop-input" id="test-msg" placeholder="Escribe un mensaje de prueba...">
+      <button class="btn btn-purple" style="width:100%;margin-top:6px" onclick="probarClaude()">🤖 Generar respuesta</button>
+      <div class="ai-test-result" id="test-result">La respuesta de Claude aparecerá aquí...</div>
+    </div>`;
+  }
+
+  if (n.tipo === 'ia_intent') {
+    html += `
+    <div class="prop-group">
+      <label class="prop-label">Intenciones a detectar (separadas por coma)</label>
+      <input class="prop-input" id="pn-intenciones" value="${(cfg.intenciones||[]).join(',')}" placeholder="consulta,queja,precio,soporte,saludo">
+      <div class="prop-hint">Claude detectará cuál de estas intenciones tiene el mensaje del usuario</div>
+    </div>`;
+  }
+
+  if (n.tipo === 'traducir') {
+    html += `
+    <div class="prop-group">
+      <label class="prop-label">Idioma destino</label>
+      <select class="prop-input" id="pn-idioma">
+        <option value="es" ${cfg.idioma==='es'?'selected':''}>Español</option>
+        <option value="en" ${cfg.idioma==='en'?'selected':''}>English</option>
+        <option value="pt" ${cfg.idioma==='pt'?'selected':''}>Português</option>
+        <option value="fr" ${cfg.idioma==='fr'?'selected':''}>Français</option>
+      </select>
+    </div>`;
+  }
+
+  if (n.tipo === 'asignar') {
+    html += `
+    <div class="prop-group">
+      <label class="prop-label">Asignar a agente</label>
+      <select class="prop-input" id="pn-agente">
+        <option value="">Agente disponible (automático)</option>
+        ${agentes.map(a=>`<option value="${a.id}" ${cfg.agente_id===a.id?'selected':''}>${a.nombre} (${a.rol})</option>`).join('')}
+      </select>
+    </div>
+    <div class="prop-group">
+      <label class="prop-label">Mensaje de transferencia</label>
+      <textarea class="prop-input" id="pn-mensaje" placeholder="Un agente te atenderá en breve...">${cfg.mensaje||''}</textarea>
+    </div>`;
+  }
+
+  if (n.tipo === 'etiquetar') {
+    html += `
+    <div class="prop-group">
+      <label class="prop-label">Etiqueta a agregar</label>
+      <input class="prop-input" id="pn-etiqueta" value="${cfg.etiqueta||''}" placeholder="Ej: lead-caliente, cliente-vip">
+    </div>`;
+  }
+
+  if (n.tipo === 'esperar') {
+    html += `
+    <div class="prop-group">
+      <label class="prop-label">Tiempo de espera (segundos)</label>
+      <input class="prop-input" type="number" id="pn-segundos" value="${cfg.segundos||3}" min="1" max="300">
+      <div class="prop-hint">El bot esperará este tiempo antes de enviar el siguiente mensaje</div>
+    </div>`;
+  }
+
+  if (n.tipo !== 'inicio') {
+    html += `
+    <div class="prop-group" style="border-top:1px solid var(--border);padding-top:12px;margin-top:4px">
+      <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px">
+        <input type="checkbox" id="pn-es-inicio" ${botData?.nodo_inicio_id===n.id?'checked':''} onchange="setNodoInicio('${n.id}',this.checked)">
+        Establecer como nodo de inicio
+      </label>
+    </div>`;
+  }
+
+  html += `
+    <button class="btn btn-primary btn-save-node" onclick="guardarNodo('${n.id}')">💾 Guardar nodo</button>
+    <button class="btn btn-ghost btn-save-node" style="margin-top:8px;color:var(--red)" onclick="eliminarNodo('${n.id}',null)">🗑️ Eliminar nodo</button>
+  `;
+
+  props.innerHTML = html;
+
+  // Store current options for editing
+  props._opciones = [...(cfg.opciones || [])];
+}
+
+function actualizarOpcion(i, val) {
+  const props = document.getElementById('props-body');
+  if (props._opciones) props._opciones[i] = val;
+}
+function eliminarOpcion(i) {
+  const props = document.getElementById('props-body');
+  props._opciones?.splice(i, 1);
+  const n = nodos.find(n => n.id === selectedNode);
+  if (n) { n.configuracion = n.configuracion || {}; n.configuracion.opciones = [...(props._opciones||[])]; }
+  renderPropsPanel(n);
+}
+function agregarOpcion() {
+  const props = document.getElementById('props-body');
+  props._opciones = props._opciones || [];
+  props._opciones.push('');
+  const n = nodos.find(n => n.id === selectedNode);
+  if (n) { n.configuracion = n.configuracion || {}; n.configuracion.opciones = [...props._opciones]; }
+  renderPropsPanel(n);
+}
+
+async function guardarNodo(nodeId) {
+  const n = nodos.find(n => n.id === nodeId);
+  if (!n) return;
+  const props = document.getElementById('props-body');
+
+  const nombre = document.getElementById('pn-nombre')?.value || n.nombre;
+  const cfg = { ...n.configuracion };
+
+  // Recoger campos
+  const mensajeEl = document.getElementById('pn-mensaje');
+  if (mensajeEl) cfg.mensaje = mensajeEl.value;
+
+  const promptEl = document.getElementById('pn-prompt');
+  if (promptEl) { cfg.prompt = promptEl.value; cfg.usar_bc = document.getElementById('pn-use-bc')?.value !== '0'; cfg.temperatura = parseFloat(document.getElementById('pn-temp')?.value || 0.7); }
+
+  const intencionesEl = document.getElementById('pn-intenciones');
+  if (intencionesEl) cfg.intenciones = intencionesEl.value.split(',').map(s=>s.trim()).filter(Boolean);
+
+  const idiomaEl = document.getElementById('pn-idioma');
+  if (idiomaEl) cfg.idioma = idiomaEl.value;
+
+  const agenteEl = document.getElementById('pn-agente');
+  if (agenteEl) cfg.agente_id = agenteEl.value || null;
+
+  const etiquetaEl = document.getElementById('pn-etiqueta');
+  if (etiquetaEl) cfg.etiqueta = etiquetaEl.value;
+
+  const segundosEl = document.getElementById('pn-segundos');
+  if (segundosEl) cfg.segundos = parseInt(segundosEl.value);
+
+  if (props._opciones !== undefined) cfg.opciones = props._opciones;
+
+  try {
+    const r = await apiFetch(`/api/chatbots/${botId}/nodos/${nodeId}`, {
+      method: 'PUT',
+      body: JSON.stringify({ nombre, configuracion: cfg, posicion_x: Math.round(n.x), posicion_y: Math.round(n.y) }),
+    });
+    if (!r.ok) throw new Error('Error al guardar');
+    const updated = await r.json();
+    const idx = nodos.findIndex(n => n.id === nodeId);
+    nodos[idx] = { ...nodos[idx], ...updated, x: n.x, y: n.y };
+    renderAll();
+    seleccionarNodo(nodeId);
+    toast('Nodo guardado ✓');
+  } catch(e) { toast(e.message, 'err'); }
+}
+
+async function setNodoInicio(nodeId, checked) {
+  if (!checked) return;
+  await apiFetch(`/api/chatbots/${botId}`, { method:'PUT', body: JSON.stringify({ nodo_inicio_id: nodeId }) });
+  if (botData) botData.nodo_inicio_id = nodeId;
+  toast('Nodo de inicio establecido');
+}
+
+async function eliminarNodo(nodeId, e) {
+  if (e) { e.stopPropagation(); e.preventDefault(); }
+  if (!confirm('¿Eliminar este nodo y sus conexiones?')) return;
+  await apiFetch(`/api/chatbots/${botId}/nodos/${nodeId}`, { method:'DELETE' });
+  nodos = nodos.filter(n => n.id !== nodeId);
+  conexiones = conexiones.filter(c => c.nodo_origen_id !== nodeId && c.nodo_destino_id !== nodeId);
+  document.getElementById('node-' + nodeId)?.remove();
+  renderConnections();
+  if (selectedNode === nodeId) seleccionarNodo(null);
+  toast('Nodo eliminado');
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// CLAUDE AI TEST
+// ══════════════════════════════════════════════════════════════════════════════
+async function probarClaude() {
+  const msg   = document.getElementById('test-msg')?.value?.trim();
+  const prompt = document.getElementById('pn-prompt')?.value?.trim();
+  const result = document.getElementById('test-result');
+  if (!msg) { toast('Escribe un mensaje de prueba', 'err'); return; }
+
+  result.textContent = '⏳ Generando respuesta con Claude...';
+
+  try {
+    const r = await apiFetch('/api/ia/respuesta', {
+      method: 'POST',
+      body: JSON.stringify({ pregunta: msg, contexto: prompt }),
+    });
+    const data = await r.json();
+    if (!data.disponible) {
+      result.textContent = '⚠️ Claude AI no está configurado. Ve a Configuración → IA para agregar tu API key.';
+    } else {
+      result.textContent = data.respuesta;
+    }
+  } catch(e) { result.textContent = 'Error: ' + e.message; }
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// SAVE ALL
+// ══════════════════════════════════════════════════════════════════════════════
+async function guardarTodo() {
+  // Guardar posiciones de todos los nodos
+  const promises = nodos.map(n =>
+    apiFetch(`/api/chatbots/${botId}/nodos/${n.id}`, {
+      method: 'PUT',
+      body: JSON.stringify({ nombre: n.nombre, configuracion: n.configuracion, posicion_x: Math.round(n.x), posicion_y: Math.round(n.y) }),
+    }).catch(()=>{})
+  );
+  await Promise.all(promises);
+  toast('Todo guardado ✓', 'ok');
+}
+
+async function toggleActivo() {
+  if (!botData) return;
+  const nuevo = !botData.activo;
+  if (nuevo && nodos.length === 0) {
+    toast('Agrega al menos un nodo antes de activar', 'err'); return;
+  }
+  if (nuevo && !botData.nodo_inicio_id) {
+    toast('Establece un nodo de inicio antes de activar', 'err'); return;
+  }
+  const r = await apiFetch(`/api/chatbots/${botId}`, { method:'PUT', body: JSON.stringify({ activo: nuevo }) });
+  if (r.ok) {
+    botData.activo = nuevo;
+    document.getElementById('status-dot').className = 'status-dot' + (nuevo ? ' active' : '');
+    document.getElementById('status-label').textContent = nuevo ? 'Activo' : 'Inactivo';
+    toast(nuevo ? '✅ Chatbot activado' : '⏸ Chatbot pausado');
+  }
+}
+
+async function probarBot() {
+  const msg = prompt('Simula un mensaje del usuario:');
+  if (!msg) return;
+  const r = await apiFetch('/api/ia/respuesta', { method:'POST', body: JSON.stringify({ pregunta: msg }) });
+  const data = await r.json();
+  alert('Respuesta simulada:\n\n' + (data.respuesta || '(Sin respuesta IA configurada)'));
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// TEMPLATES
+// ══════════════════════════════════════════════════════════════════════════════
+function mostrarTemplates() {
+  document.getElementById('tpl-modal').classList.add('show');
+}
+
+async function usarTemplate(tipo) {
+  document.getElementById('tpl-modal').classList.remove('show');
+  if (!confirm(`¿Aplicar plantilla "${tipo}"? Se agregarán nodos al canvas actual.`)) return;
+
+  const templates = {
+    bienvenida: [
+      { tipo:'inicio', nombre:'Bienvenida', cfg:{ mensaje:'¡Hola! 👋 Soy el asistente virtual de CorpEase. ¿En qué puedo ayudarte hoy?' }, x:100, y:150 },
+      { tipo:'pregunta', nombre:'Menú Principal', cfg:{ mensaje:'Selecciona una opción:', opciones:['📋 Información de servicios','💰 Cotización','📞 Hablar con un agente','❓ Preguntas frecuentes'] }, x:400, y:150 },
+      { tipo:'asignar', nombre:'Transferir Agente', cfg:{ mensaje:'Un agente te atenderá en breve...' }, x:700, y:300 },
+      { tipo:'fin', nombre:'Despedida', cfg:{ mensaje:'¡Gracias por contactarnos! Nuestro equipo te responderá pronto. 😊' }, x:700, y:150 },
+    ],
+    calificacion: [
+      { tipo:'inicio', nombre:'Inicio', cfg:{ mensaje:'¡Hola! 👋 Me gustaría conocerte mejor. ¿Cuál es tu nombre?' }, x:100, y:150 },
+      { tipo:'mensaje', nombre:'Pedir Email', cfg:{ mensaje:'Perfecto, {{nombre}}. ¿Cuál es tu correo electrónico?' }, x:360, y:150 },
+      { tipo:'pregunta', nombre:'Servicio de Interés', cfg:{ mensaje:'¿Qué servicio te interesa?', opciones:['Formación de LLC','Declaración de impuestos','Bookkeeping','Registered Agent','Nómina'] }, x:620, y:150 },
+      { tipo:'claude', nombre:'Respuesta IA', cfg:{ prompt:'Eres un asesor de CorpEase. El usuario ha indicado su interés en servicios. Responde con información relevante y beneficios del servicio seleccionado. Sé conciso y finaliza preguntando si quiere ser contactado por un especialista.', temperatura:0.7 }, x:880, y:150 },
+      { tipo:'asignar', nombre:'Asignar Asesor', cfg:{ mensaje:'¡Excelente! Un asesor especializado te contactará pronto.' }, x:1140, y:150 },
+    ],
+    soporte: [
+      { tipo:'inicio', nombre:'Inicio Soporte', cfg:{ mensaje:'¡Hola! 🛠️ Soy tu asistente de soporte. Cuéntame, ¿qué problema tienes?' }, x:100, y:200 },
+      { tipo:'claude', nombre:'Soporte con IA', cfg:{ prompt:'Eres un especialista de soporte de CorpEase. Ayuda al usuario a resolver su problema con servicios de contabilidad, formación de LLC, impuestos, o temas relacionados. Si no puedes resolver el problema, indica que un agente humano le ayudará.', usar_bc: true, temperatura:0.5 }, x:400, y:200 },
+      { tipo:'pregunta', nombre:'¿Resuelto?', cfg:{ mensaje:'¿Pude ayudarte con tu consulta?', opciones:['✅ Sí, gracias','❌ No, necesito más ayuda'] }, x:700, y:200 },
+      { tipo:'fin', nombre:'Cierre', cfg:{ mensaje:'¡Perfecto! Si necesitas algo más, no dudes en escribirnos. 😊' }, x:1000, y:100 },
+      { tipo:'asignar', nombre:'Escalar Agente', cfg:{ mensaje:'Entiendo, te conectaré con un agente humano que podrá ayudarte mejor.' }, x:1000, y:300 },
+    ],
+    faq: [
+      { tipo:'inicio', nombre:'FAQ Inicio', cfg:{ mensaje:'¡Hola! 📚 Puedo responder tus preguntas frecuentes. ¿Qué quieres saber?' }, x:100, y:200 },
+      { tipo:'ia_intent', nombre:'Detectar Tema', cfg:{ intenciones:['precio','servicio_llc','servicio_tax','servicio_bookkeeping','proceso','tiempo','requisitos','general'] }, x:400, y:200 },
+      { tipo:'claude', nombre:'Respuesta FAQ', cfg:{ prompt:'Eres un experto en servicios de CorpEase (LLC, impuestos, bookkeeping, registered agent). Responde preguntas frecuentes de forma clara, concisa y amigable. Incluye costos aproximados si preguntan por precios.', usar_bc: true, temperatura:0.4 }, x:700, y:200 },
+      { tipo:'pregunta', nombre:'¿Más ayuda?', cfg:{ mensaje:'¿Hay algo más en lo que pueda ayudarte?', opciones:['Sí, tengo otra pregunta','No, gracias','Quiero hablar con un agente'] }, x:1000, y:200 },
+    ],
+    cita: [
+      { tipo:'inicio', nombre:'Agendar Cita', cfg:{ mensaje:'📅 ¡Hola! Te ayudaré a agendar una cita con nuestro equipo. ¿Cuál es tu nombre completo?' }, x:100, y:200 },
+      { tipo:'mensaje', nombre:'Pedir Teléfono', cfg:{ mensaje:'¿Cuál es tu número de teléfono?' }, x:360, y:200 },
+      { tipo:'pregunta', nombre:'Tipo de Consulta', cfg:{ mensaje:'¿Qué tipo de consulta necesitas?', opciones:['Formación de LLC','Declaración de impuestos','Bookkeeping','Consulta general'] }, x:620, y:200 },
+      { tipo:'pregunta', nombre:'Horario Preferido', cfg:{ mensaje:'¿Qué horario prefieres?', opciones:['Mañana (9am-12pm)','Tarde (12pm-5pm)','Noche (5pm-8pm)'] }, x:880, y:200 },
+      { tipo:'claude', nombre:'Confirmar Cita', cfg:{ prompt:'El usuario quiere agendar una cita. Con los datos recopilados (nombre, teléfono, tipo de consulta, horario), genera un mensaje de confirmación amigable indicando que el equipo le contactará para confirmar la cita.', temperatura:0.6 }, x:1140, y:200 },
+      { tipo:'fin', nombre:'Cita Confirmada', cfg:{ mensaje:'¡Listo! Hemos registrado tu solicitud. Te contactaremos para confirmar tu cita. ¡Hasta pronto! 📅' }, x:1400, y:200 },
+    ],
+    encuesta: [
+      { tipo:'inicio', nombre:'Encuesta', cfg:{ mensaje:'📊 Tu opinión es muy importante para nosotros. ¿Puedes tomar 1 minuto para evaluar tu experiencia?' }, x:100, y:200 },
+      { tipo:'pregunta', nombre:'Calificación', cfg:{ mensaje:'¿Cómo calificarías nuestro servicio?', opciones:['⭐ Excelente','👍 Bueno','😐 Regular','👎 Malo'] }, x:360, y:200 },
+      { tipo:'pregunta', nombre:'Recomendarías', cfg:{ mensaje:'¿Recomendarías CorpEase a un amigo o colega?', opciones:['✅ Sí, definitivamente','🤔 Tal vez','❌ No'] }, x:620, y:200 },
+      { tipo:'claude', nombre:'Respuesta Personalizada', cfg:{ prompt:'El usuario completó una encuesta de satisfacción. Genera un mensaje de agradecimiento personalizado basado en la calificación recibida. Si fue positiva, agradece y pide referidos. Si fue negativa, muestra empatía y ofrece soluciones.', temperatura:0.8 }, x:880, y:200 },
+      { tipo:'fin', nombre:'Gracias', cfg:{ mensaje:'¡Muchas gracias por tu retroalimentación! Seguimos trabajando para ofrecerte el mejor servicio. 🙏' }, x:1140, y:200 },
+    ],
+  };
+
+  const tpl = templates[tipo];
+  if (!tpl) return;
+
+  for (const nDef of tpl) {
+    const r = await apiFetch(`/api/chatbots/${botId}/nodos`, {
+      method:'POST',
+      body: JSON.stringify({ tipo: nDef.tipo, nombre: nDef.nombre, configuracion: nDef.cfg, posicion_x: nDef.x, posicion_y: nDef.y }),
+    });
+    if (r.ok) {
+      const nodo = await r.json();
+      nodo.x = nDef.x; nodo.y = nDef.y;
+      nodos.push(nodo);
+      renderNode(nodo);
+    }
+  }
+
+  // Establecer primer nodo como inicio
+  const primerNodo = nodos[nodos.length - tpl.length];
+  if (primerNodo) {
+    await apiFetch(`/api/chatbots/${botId}`, { method:'PUT', body: JSON.stringify({ nodo_inicio_id: primerNodo.id }) });
+    if (botData) botData.nodo_inicio_id = primerNodo.id;
+  }
+
+  toast(`Plantilla "${tipo}" aplicada. Conecta los nodos con las flechas.`);
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// ZOOM & PAN
+// ══════════════════════════════════════════════════════════════════════════════
+function applyTransform() {
+  document.getElementById('canvas').style.transform = `translate(${panX}px,${panY}px) scale(${scale})`;
+  document.getElementById('canvas').style.transformOrigin = '0 0';
+}
+function zoom(delta) {
+  scale = Math.min(2, Math.max(0.3, scale + delta));
+  document.getElementById('zoom-label').textContent = Math.round(scale * 100) + '%';
+  applyTransform();
+}
+function resetZoom() { scale=1; applyTransform(); document.getElementById('zoom-label').textContent='100%'; }
+function centrarCanvas() {
+  panX = 60; panY = 60;
+  applyTransform();
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// UTILS
+// ══════════════════════════════════════════════════════════════════════════════
+function mostrarHint(show = true) {
+  const hint = document.getElementById('canvas-hint');
+  hint.classList.toggle('show', show);
+}
+
+function volverPanel() {
+  window.close();
+  window.location.href = 'index.html';
+}
+
+async function apiFetch(path, opts = {}) {
+  return fetch(API_BASE + path, {
+    ...opts,
+    headers: { 'Content-Type':'application/json', Authorization:'Bearer '+TOKEN, ...(opts.headers||{}) },
+  });
+}
+
+function toast(msg, type='ok') {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.className = 'toast show ' + (type === 'err' ? 'err' : 'ok');
+  setTimeout(() => el.classList.remove('show'), 3000);
+}
+
+// Keyboard shortcuts
+document.addEventListener('keydown', e => {
+  if (e.key === 'Delete' && selectedNode) eliminarNodo(selectedNode, null);
+  if (e.key === 'Delete' && selectedConn) eliminarConexion(selectedConn);
+  if (e.key === 's' && (e.ctrlKey||e.metaKey)) { e.preventDefault(); guardarTodo(); }
+  if (e.key === 'Escape') { seleccionarNodo(null); selectedConn = null; }
+});
+
+// ── INIT ─────────────────────────────────────────────────────────────────────
+init();
+</script>
+</body>
+</html>

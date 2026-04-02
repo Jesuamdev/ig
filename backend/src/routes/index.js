@@ -447,6 +447,7 @@ router.put   ('/chatbots/:chatbot_id/nodos/:nodo_id',           authenticate, so
 router.delete('/chatbots/:chatbot_id/nodos/:nodo_id',           authenticate, soloAgente, chatbotCtrl.eliminarNodo);
 // Conexiones
 router.post  ('/chatbots/:chatbot_id/conexiones',               authenticate, soloAgente, chatbotCtrl.crearConexion);
+router.put   ('/chatbots/:chatbot_id/conexiones/:conexion_id',  authenticate, soloAgente, chatbotCtrl.actualizarConexion);
 router.delete('/chatbots/:chatbot_id/conexiones/:conexion_id',  authenticate, soloAgente, chatbotCtrl.eliminarConexion);
 // Sesiones
 router.get   ('/chatbots/:chatbot_id/sesiones',                 authenticate, soloAgente, chatbotCtrl.listarSesiones);

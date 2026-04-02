@@ -109,6 +109,18 @@ const crearConexion = async (req, res) => {
   } catch (err) { res.status(500).json({ message: err.message }); }
 };
 
+const actualizarConexion = async (req, res) => {
+  try {
+    const { condicion } = req.body;
+    const { rows } = await query(
+      `UPDATE chatbot_conexiones SET condicion=$1 WHERE id=$2 AND chatbot_id=$3 RETURNING *`,
+      [condicion ? JSON.stringify(condicion) : null, req.params.conexion_id, req.params.chatbot_id]
+    );
+    if (!rows.length) return res.status(404).json({ message: 'Conexión no encontrada' });
+    res.json(rows[0]);
+  } catch (err) { res.status(500).json({ message: err.message }); }
+};
+
 const eliminarConexion = async (req, res) => {
   try {
     await query(`DELETE FROM chatbot_conexiones WHERE id=$1 AND chatbot_id=$2`, [req.params.conexion_id, req.params.chatbot_id]);
@@ -174,7 +186,7 @@ const eliminarEntradaBC = async (req, res) => {
 module.exports = {
   listarChatbots, obtenerChatbot, crearChatbot, actualizarChatbot, eliminarChatbot,
   crearNodo, actualizarNodo, eliminarNodo,
-  crearConexion, eliminarConexion,
+  crearConexion, actualizarConexion, eliminarConexion,
   listarSesiones,
   listarBaseConocimiento, crearEntradaBC, actualizarEntradaBC, eliminarEntradaBC,
 };

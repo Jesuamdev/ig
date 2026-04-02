@@ -2389,8 +2389,7 @@ async function eliminarChatbot(id) {
 }
 
 function editarChatbot(id) {
-  // Abrir editor visual en nueva pestaña o modal
-  abrirEditorChatbot(id);
+  window.open(`../chatbot-editor.html?id=${id}&api=${encodeURIComponent(API)}`, '_blank');
 }
 
 function abrirEditorChatbot(chatbotId) {
@@ -2810,7 +2809,7 @@ async function exportarCSV() {
   const params = new URLSearchParams();
   if (desde) params.set('desde',desde);
   if (hasta) params.set('hasta',hasta);
-  window.open(API_BASE + '/api/reportes/exportar?' + params + '&token=' + localStorage.getItem('token'));
+  window.open(API + '/api/reportes/exportar?' + params + '&token=' + localStorage.getItem('token'));
 }
 
 // ══════════════════════════════════════════════════════════════════════════════
