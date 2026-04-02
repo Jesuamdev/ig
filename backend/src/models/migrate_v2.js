@@ -68,7 +68,7 @@ CREATE TABLE IF NOT EXISTS chatbots (
 CREATE TABLE IF NOT EXISTS chatbot_nodos (
   id             UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   chatbot_id     UUID NOT NULL REFERENCES chatbots(id) ON DELETE CASCADE,
-  tipo           VARCHAR(30) NOT NULL CHECK (tipo IN ('mensaje','pregunta','condicion','accion','esperar','fin')),
+  tipo           VARCHAR(30) NOT NULL CHECK (tipo IN ('inicio','mensaje','pregunta','condicion','accion','esperar','fin','claude','ia_intent','traducir','asignar','etiquetar')),
   nombre         VARCHAR(100),
   configuracion  JSONB NOT NULL DEFAULT '{}',
   posicion_x     INTEGER DEFAULT 0,

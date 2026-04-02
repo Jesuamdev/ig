@@ -239,7 +239,7 @@ const widgetSnippet = async (req, res) => {
     const { rows } = await query(`SELECT * FROM widgets WHERE id=$1`, [req.params.id]);
     if (!rows.length) return res.status(404).json({ message: 'No encontrado' });
     const w = rows[0];
-    const baseUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
+    const baseUrl = process.env.API_URL || `http://localhost:${process.env.PORT || 3001}`;
     const snippet = `<!-- WhatsApp Widget by 33Solutions -->
 <script>
   window.WA_WIDGET_CONFIG = {

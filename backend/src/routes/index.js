@@ -127,7 +127,7 @@ router.post('/pagos/:id/programar-recordatorio', authenticate, soloAgente, async
     const { rows } = await query(`
       UPDATE pagos SET
         recordatorio_enviado = FALSE,
-        notas = COALESCE(notas, '') || $1
+        descripcion = COALESCE(descripcion, '') || $1
       WHERE id = $2 RETURNING *
     `, [`\n[Recordatorio programado: ${dias_antes} días antes, canales: ${canales.join(',')}]`, req.params.id]);
 
@@ -222,7 +222,6 @@ router.post('/whatsapp/contacto/:contactoId/convertir-cliente', authenticate, so
       [cliente.id, `${nombre} ${apellido || ''}`.trim(), contactoId]);
 
     await query(`UPDATE archivos SET cliente_id = $1 WHERE contacto_id = $2 AND cliente_id IS NULL`, [cliente.id, contactoId]);
-    await query(`UPDATE conversaciones SET cliente_id = $1 WHERE contacto_id = $2`, [cliente.id, contactoId]);
 
     let passwordGenerado = null;
     if (activar_portal) {
@@ -442,6 +441,7 @@ router.get   ('/chatbots/:id',                       authenticate, soloAgente, c
 router.put   ('/chatbots/:id',                       authenticate, soloAgente, chatbotCtrl.actualizarChatbot);
 router.delete('/chatbots/:id',                       authenticate, soloAgente, chatbotCtrl.eliminarChatbot);
 // Nodos
+router.get   ('/chatbots/:chatbot_id/nodos',                    authenticate, soloAgente, chatbotCtrl.listarNodos);
 router.post  ('/chatbots/:chatbot_id/nodos',                    authenticate, soloAgente, chatbotCtrl.crearNodo);
 router.put   ('/chatbots/:chatbot_id/nodos/:nodo_id',           authenticate, soloAgente, chatbotCtrl.actualizarNodo);
 router.delete('/chatbots/:chatbot_id/nodos/:nodo_id',           authenticate, soloAgente, chatbotCtrl.eliminarNodo);

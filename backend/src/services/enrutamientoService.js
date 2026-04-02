@@ -62,7 +62,7 @@ function obtenerValorCampo(campo, conversacion, contacto, mensaje) {
     case 'pais':            return contacto?.pais || '';
     case 'etiqueta':        return (contacto?.etiquetas || []).join(',');
     case 'estado':          return conversacion?.estado || '';
-    case 'tiene_cliente':   return conversacion?.cliente_id ? 'si' : 'no';
+    case 'tiene_cliente':   return contacto?.cliente_id ? 'si' : 'no';
     default:                return null;
   }
 }

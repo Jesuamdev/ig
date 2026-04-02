@@ -64,6 +64,16 @@ const eliminarChatbot = async (req, res) => {
 };
 
 // ── NODOS ────────────────────────────────────────────────────────────────────
+const listarNodos = async (req, res) => {
+  try {
+    const { rows } = await query(
+      `SELECT * FROM chatbot_nodos WHERE chatbot_id=$1 ORDER BY created_at ASC`,
+      [req.params.chatbot_id]
+    );
+    res.json(rows);
+  } catch (err) { res.status(500).json({ message: err.message }); }
+};
+
 const crearNodo = async (req, res) => {
   try {
     const { chatbot_id } = req.params;
@@ -185,7 +195,7 @@ const eliminarEntradaBC = async (req, res) => {
 
 module.exports = {
   listarChatbots, obtenerChatbot, crearChatbot, actualizarChatbot, eliminarChatbot,
-  crearNodo, actualizarNodo, eliminarNodo,
+  listarNodos, crearNodo, actualizarNodo, eliminarNodo,
   crearConexion, actualizarConexion, eliminarConexion,
   listarSesiones,
   listarBaseConocimiento, crearEntradaBC, actualizarEntradaBC, eliminarEntradaBC,
