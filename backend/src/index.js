@@ -49,6 +49,9 @@ app.use(morgan('combined', { stream: { write: m => logger.info(m.trim()) } }));
 // ── Archivos estáticos (almacenamiento local) ─────────────────────────────────
 app.use('/uploads', express.static(path.resolve(process.env.UPLOADS_PATH || './uploads')));
 
+// ── Widget de WhatsApp (público) ──────────────────────────────────────────────
+app.use('/widget', express.static(path.resolve(__dirname, '../../frontend/widget')));
+
 // ── Inyectar io en las rutas ──────────────────────────────────────────────────
 app.set('io', io);
 
@@ -95,9 +98,14 @@ io.on('connection', (socket) => {
 
 // ── Arrancar ──────────────────────────────────────────────────────────────────
 server.listen(PORT, () => {
-  logger.info(`🚀 CorpEase Sistema Unificado corriendo en puerto ${PORT} [${process.env.NODE_ENV || 'development'}]`);
+  logger.info(`🚀 CorpEase v2 corriendo en puerto ${PORT} [${process.env.NODE_ENV || 'development'}]`);
   logger.info(`📱 WhatsApp webhook: /api/whatsapp/webhook`);
   logger.info(`🖥️  Panel agentes:   ${process.env.FRONTEND_URL || 'http://localhost:5500'}`);
+  logger.info(`🤖 Chatbots API:    /api/chatbots`);
+  logger.info(`📢 Campañas API:    /api/campanas`);
+  logger.info(`📊 Reportes API:    /api/reportes`);
+  logger.info(`🔗 Webhooks API:    /api/webhooks`);
+  logger.info(`⚙️  Widget JS:       /widget/widget.js`);
   iniciarCron();
 });
 

@@ -1,12 +1,20 @@
 // src/controllers/webhookController.js
 // Preserva 100% la lógica original del sistema WhatsApp
 // + vincula archivos recibidos al perfil del cliente si existe
+// + integra chatbots, enrutamiento inteligente y webhooks salientes
 const axios   = require('axios');
 const { v4: uuidv4 } = require('uuid');
 const { query, withTransaction } = require('../models/db');
 const storageService = require('../services/storageService');
 const { procesarFlujos } = require('../services/flowService');
 const logger  = require('../utils/logger');
+
+// Lazy-load para evitar dependencias circulares
+function getChatbotService() { return require('../services/chatbotService'); }
+function getEnrutamientoService() { return require('../services/enrutamientoService'); }
+function getWebhookSalienteService() { return require('../services/webhookSalienteService'); }
+function getCampanaService() { return require('../services/campanaService'); }
+function getAiService() { return require('../services/aiService'); }
 
 // GET /api/whatsapp/webhook — verificación Meta
 function verificarWebhook(req, res) {
@@ -157,6 +165,75 @@ async function procesarMensaje(mensaje, contactoMeta, io) {
       }
     }
 
+    // 7b. Detección de intención con IA (asíncrono, no bloquea)
+    const textoMensaje = contenido;
+    if (textoMensaje && tipo === 'text') {
+      setImmediate(async () => {
+        try {
+          const aiService = getAiService();
+          const intencion = await aiService.detectarIntencion(textoMensaje);
+          if (intencion?.intencion && intencion.intencion !== 'otro') {
+            await query(`
+              UPDATE conversaciones SET titulo=COALESCE(titulo,$1) WHERE id=$2
+            `, [`[IA] ${intencion.intencion}`, conversacion.id]).catch(() => {});
+          }
+        } catch (_) {}
+      });
+    }
+
+    // 7c. Procesar chatbot si hay sesión activa o nuevo chatbot detectado
+    const esConversacionNueva = !convRows.length;
+    setImmediate(async () => {
+      try {
+        const chatbotService = getChatbotService();
+        let sesionActiva = await chatbotService.obtenerSesionActiva(contacto.id);
+
+        if (!sesionActiva && tipo === 'text') {
+          // Intentar detectar si algún chatbot debe activarse
+          const numeroId = conversacion.numero_id || null;
+          const bot = await chatbotService.detectarChatbot(contenido, contacto.id, numeroId);
+          if (bot) {
+            sesionActiva = await chatbotService.iniciarSesion(bot.id, contacto.id, conversacion.id);
+            if (sesionActiva) {
+              const waService = require('../services/whatsappService');
+              await chatbotService.ejecutarNodoInicio(sesionActiva, waService).catch(() => {});
+            }
+          }
+        } else if (sesionActiva && tipo === 'text') {
+          // Continuar sesión activa
+          const waService = require('../services/whatsappService');
+          await chatbotService.procesarRespuesta(sesionActiva, contenido, waService, io).catch(() => {});
+        }
+      } catch (err) {
+        logger.error('chatbot procesamiento:', err.message);
+      }
+    });
+
+    // 7d. Aplicar reglas de enrutamiento si es conversación nueva
+    if (esConversacionNueva) {
+      setImmediate(async () => {
+        try {
+          const enrutamiento = getEnrutamientoService();
+          await enrutamiento.aplicarReglas(conversacion, contacto, mensajeGuardado).catch(() => {});
+        } catch (_) {}
+      });
+    }
+
+    // 7e. Despachar webhook saliente
+    setImmediate(async () => {
+      try {
+        const whSaliente = getWebhookSalienteService();
+        await whSaliente.despacharEvento('mensaje.nuevo', {
+          conversacion_id: conversacion.id,
+          contacto_id: contacto.id,
+          telefono, tipo,
+          contenido: contenido.substring(0, 500),
+          direccion: 'entrante',
+          timestamp: new Date().toISOString(),
+        });
+      } catch (_) {}
+    });
+
     // 8. Ejecutar flujos automáticos si llegó un archivo
     if (archivoGuardado) {
       let clienteData = null;
@@ -233,6 +310,12 @@ async function descargarYGuardarArchivo(mensaje, tipo, mensajeId, conversacionId
 async function actualizarEstadoMensaje(status) {
   try {
     await query(`UPDATE mensajes SET estado = $1 WHERE whatsapp_message_id = $2`, [status.status, status.id]);
+
+    // Actualizar estadísticas de campaña si aplica
+    if (['delivered','read'].includes(status.status)) {
+      const campanaService = getCampanaService();
+      await campanaService.actualizarEstadoCampana(status.id, status.status).catch(() => {});
+    }
   } catch (err) {
     logger.error('actualizarEstado:', err.message);
   }

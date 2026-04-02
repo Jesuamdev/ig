@@ -7,13 +7,29 @@ const waService    = require('./whatsappService');
 const logger       = require('../utils/logger');
 
 function iniciarCron() {
-  // Todos los días a las 8:00 AM
+  // Recordatorios de pago — diario 8:00 AM
   cron.schedule('0 8 * * *', async () => {
     logger.info('⏰ Cron: procesando recordatorios de pago...');
     await procesarRecordatorios();
   });
 
-  logger.info('✅ Cron de recordatorios activo (diario 8:00 AM)');
+  // Secuencias de seguimiento — cada 15 minutos
+  cron.schedule('*/15 * * * *', async () => {
+    try {
+      const { procesarSecuencias } = require('./secuenciaService');
+      await procesarSecuencias();
+    } catch (err) { logger.error('Cron secuencias:', err.message); }
+  });
+
+  // Campañas programadas — cada 5 minutos
+  cron.schedule('*/5 * * * *', async () => {
+    try {
+      const { procesarCampanasProgramadas } = require('./campanaService');
+      await procesarCampanasProgramadas();
+    } catch (err) { logger.error('Cron campañas:', err.message); }
+  });
+
+  logger.info('✅ Crons activos: recordatorios (8AM), secuencias (c/15min), campañas (c/5min)');
 }
 
 async function procesarRecordatorios() {

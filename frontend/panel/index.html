@@ -266,6 +266,44 @@ tr:hover td{background:#fafafa}
 ::-webkit-scrollbar-track{background:transparent}
 ::-webkit-scrollbar-thumb{background:#d1d5db;border-radius:2px}
 .hidden{display:none!important}
+
+/* ── NUEVAS CLASES v2 ─────────────────────────────────────────────────────── */
+/* Badges */
+.badge{display:inline-flex;align-items:center;padding:2px 8px;border-radius:20px;font-size:11px;font-weight:600}
+.badge-green{background:#dcfce7;color:#15803d}
+.badge-red{background:#fee2e2;color:#b91c1c}
+.badge-amber{background:#fef3c7;color:#92400e}
+.badge-blue{background:#dbeafe;color:#1d4ed8}
+.badge-gray{background:#f3f4f6;color:#4b5563}
+.badge-purple{background:#f3e8ff;color:#7c3aed}
+
+/* Form inputs para modales v2 */
+.form-label{display:block;font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.4px;margin-bottom:6px}
+.form-input{width:100%;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:9px 12px;font-size:13px;font-family:var(--font);color:var(--text);outline:none;transition:border .2s}
+.form-input:focus{border-color:var(--green)}
+
+/* Cards genéricas */
+.card{background:var(--bg-white);border:1px solid var(--border);border-radius:var(--r);box-shadow:var(--shadow)}
+
+/* Botón secondary */
+.btn-secondary{background:var(--blue);color:white}
+.btn-secondary:hover{background:#2563eb}
+
+/* stat-mini para modales */
+.stat-mini{text-align:center;padding:12px 16px;background:var(--bg);border-radius:8px;min-width:80px}
+.stat-val{font-size:24px;font-weight:700;line-height:1}
+.stat-lbl{font-size:11px;color:var(--text2);margin-top:4px}
+
+/* stat-value/label alias */
+.stat-value{font-size:28px;font-weight:600;line-height:1}
+.stat-label{font-size:12px;color:var(--text2);margin-top:4px}
+
+/* Data table */
+.data-table{width:100%;border-collapse:collapse}
+.data-table th{padding:10px 14px;text-align:left;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.4px;color:var(--text3);border-bottom:1px solid var(--border);background:#fafafa}
+.data-table td{padding:10px 14px;font-size:13px;border-bottom:1px solid #f3f4f6;vertical-align:middle}
+.data-table tr:last-child td{border-bottom:none}
+.data-table tr:hover td{background:#fafafa}
 </style>
 </head>
 <body>
@@ -304,6 +342,21 @@ tr:hover td{background:#fafafa}
   <div class="s-item" onclick="showView('pagos')" id="nav-pagos">
     <svg viewBox="0 0 24 24"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
     <span class="s-tooltip">Pagos</span>
+  </div>
+
+  <div class="s-item" onclick="showView('chatbots')" id="nav-chatbots">
+    <svg viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M12 2a4 4 0 0 1 4 4"/><path d="M8 2a4 4 0 0 0-4 4v1"/><circle cx="9" cy="16" r="1" fill="currentColor"/><circle cx="15" cy="16" r="1" fill="currentColor"/><line x1="12" y1="2" x2="12" y2="7"/></svg>
+    <span class="s-tooltip">Chatbots</span>
+  </div>
+
+  <div class="s-item" onclick="showView('campanas')" id="nav-campanas">
+    <svg viewBox="0 0 24 24"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/></svg>
+    <span class="s-tooltip">Campañas</span>
+  </div>
+
+  <div class="s-item" onclick="showView('reportes')" id="nav-reportes">
+    <svg viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+    <span class="s-tooltip">Reportes</span>
   </div>
 
   <div class="s-bottom">
@@ -475,6 +528,106 @@ tr:hover td{background:#fafafa}
     <div class="recent-table">
       <div class="table-hdr" id="pagos-tabla-titulo">Todos los pagos</div>
       <div id="pagos-tabla"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════════════════
+     VIEW: CHATBOTS
+═══════════════════════════════════════════════════════════════════════════ -->
+<div class="view" id="view-chatbots">
+  <div class="content-area">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">
+      <div class="page-title">Chatbots Inteligentes</div>
+      <button class="btn btn-primary" onclick="crearNuevoChatbot()">
+        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        Nuevo chatbot
+      </button>
+    </div>
+    <div class="page-sub">Crea chatbots visuales para automatizar conversaciones sin programar</div>
+
+    <div style="display:flex;gap:8px;margin:14px 0">
+      <button class="pl-tab active" onclick="switchChatbotTab('bots',this)">Mis chatbots</button>
+      <button class="pl-tab" onclick="switchChatbotTab('bc',this)">Base de conocimiento IA</button>
+    </div>
+
+    <div id="chatbot-tab-bots">
+      <div id="chatbots-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:14px"></div>
+    </div>
+
+    <div id="chatbot-tab-bc" style="display:none">
+      <div style="display:flex;justify-content:flex-end;margin-bottom:12px">
+        <button class="btn btn-primary" onclick="agregarEntradaBC()">+ Agregar entrada</button>
+      </div>
+      <div id="bc-lista"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════════════════
+     VIEW: CAMPAÑAS
+═══════════════════════════════════════════════════════════════════════════ -->
+<div class="view" id="view-campanas">
+  <div class="content-area">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">
+      <div class="page-title">Campañas de Difusión</div>
+      <button class="btn btn-primary" onclick="abrirModalNuevaCampana()">
+        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        Nueva campaña
+      </button>
+    </div>
+    <div class="page-sub">Envía mensajes masivos a tus contactos de forma segura</div>
+
+    <div id="campanas-resumen" style="display:flex;gap:12px;margin:14px 0;flex-wrap:wrap">
+    </div>
+
+    <div class="recent-table">
+      <div class="table-hdr">
+        Todas las campañas
+        <button class="btn btn-ghost" style="margin-left:auto;font-size:12px" onclick="cargarCampanas()">↻ Actualizar</button>
+      </div>
+      <div id="campanas-tabla"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════════════════
+     VIEW: REPORTES
+═══════════════════════════════════════════════════════════════════════════ -->
+<div class="view" id="view-reportes">
+  <div class="content-area">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">
+      <div class="page-title">Reportes y Analítica</div>
+      <div style="display:flex;gap:8px;align-items:center">
+        <input type="date" id="rep-desde" class="form-input" style="padding:6px 10px;font-size:12px" onchange="cargarReportes()">
+        <span style="font-size:12px;color:var(--text3)">hasta</span>
+        <input type="date" id="rep-hasta" class="form-input" style="padding:6px 10px;font-size:12px" onchange="cargarReportes()">
+        <button class="btn btn-ghost" onclick="exportarCSV()">📥 CSV</button>
+        <button class="btn btn-primary" onclick="cargarReportes()">↻ Actualizar</button>
+      </div>
+    </div>
+    <div class="page-sub">Métricas detalladas de conversaciones, agentes, campañas y chatbots</div>
+
+    <div style="display:flex;gap:8px;margin:14px 0">
+      <button class="pl-tab active" onclick="switchRepTab('general',this)">General</button>
+      <button class="pl-tab" onclick="switchRepTab('agentes',this)">Agentes</button>
+      <button class="pl-tab" onclick="switchRepTab('chatbots',this)">Chatbots</button>
+    </div>
+
+    <div id="rep-tab-general">
+      <div id="rep-resumen"></div>
+    </div>
+    <div id="rep-tab-agentes" style="display:none">
+      <div class="recent-table">
+        <div class="table-hdr">Rendimiento por agente</div>
+        <div id="rep-agentes"></div>
+      </div>
+    </div>
+    <div id="rep-tab-chatbots" style="display:none">
+      <div class="recent-table">
+        <div class="table-hdr">Rendimiento de chatbots</div>
+        <div id="rep-chatbots"></div>
+      </div>
     </div>
   </div>
 </div>
@@ -2140,6 +2293,569 @@ function notifClick(clienteId, convId) {
   if (clienteId) { abrirClientePanel(clienteId); return; }
   if (convId) { showView('chats'); }
 }
+
+// ══════════════════════════════════════════════════════════════════════════════
+// TAB HELPERS
+// ══════════════════════════════════════════════════════════════════════════════
+function switchChatbotTab(tab, btn) {
+  ['bots','bc'].forEach(t => {
+    const el = document.getElementById('chatbot-tab-' + t);
+    if (el) el.style.display = t === tab ? '' : 'none';
+  });
+  btn.closest('.view').querySelectorAll('.pl-tab').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+}
+
+function switchRepTab(tab, btn) {
+  ['general','agentes','chatbots'].forEach(t => {
+    const el = document.getElementById('rep-tab-' + t);
+    if (el) el.style.display = t === tab ? '' : 'none';
+  });
+  btn.closest('.view').querySelectorAll('.pl-tab').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// CHATBOTS — lógica
+// ══════════════════════════════════════════════════════════════════════════════
+let _chatbots = [];
+
+async function cargarChatbots() {
+  const r = await apiFetch('/api/chatbots');
+  _chatbots = await r.json();
+  renderChatbots();
+}
+
+function renderChatbots() {
+  const grid = document.getElementById('chatbots-grid');
+  if (!grid) return;
+  if (!_chatbots.length) {
+    grid.innerHTML = '<div style="padding:40px;text-align:center;color:var(--text3)">No hay chatbots creados. Crea tu primer chatbot.</div>';
+    return;
+  }
+  grid.innerHTML = _chatbots.map(b => `
+    <div class="card" style="padding:20px;position:relative">
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:12px">
+        <div>
+          <div style="font-size:15px;font-weight:600">${b.nombre}</div>
+          <div style="font-size:12px;color:var(--text3);margin-top:2px">${b.descripcion||'Sin descripción'}</div>
+        </div>
+        <div style="display:flex;gap:6px;align-items:center">
+          <span class="badge ${b.activo?'badge-green':'badge-gray'}">${b.activo?'Activo':'Inactivo'}</span>
+        </div>
+      </div>
+      <div style="display:flex;gap:16px;margin-bottom:14px;font-size:12px;color:var(--text2)">
+        <span>🔢 ${b.total_nodos||0} nodos</span>
+        <span>🔄 ${b.sesiones_activas||0} sesiones activas</span>
+        <span>📊 ${b.sesiones_total||0} total sesiones</span>
+        <span>🎯 ${b.trigger_tipo||'palabras'}</span>
+      </div>
+      <div style="display:flex;gap:8px">
+        <button class="btn btn-ghost" onclick="editarChatbot('${b.id}')">
+          <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+          Editor visual
+        </button>
+        <button class="btn btn-ghost" onclick="toggleChatbot('${b.id}',${b.activo})">
+          ${b.activo ? '⏸ Pausar' : '▶ Activar'}
+        </button>
+        <button class="btn btn-ghost" style="color:var(--red)" onclick="eliminarChatbot('${b.id}')">Eliminar</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+async function crearNuevoChatbot() {
+  const nombre = prompt('Nombre del chatbot:');
+  if (!nombre?.trim()) return;
+  const r = await apiFetch('/api/chatbots', { method:'POST', body: JSON.stringify({ nombre, trigger_tipo:'palabras' }) });
+  if (r.ok) { toast('Chatbot creado'); cargarChatbots(); }
+  else toast('Error al crear chatbot', 'error');
+}
+
+async function toggleChatbot(id, activo) {
+  const bot = _chatbots.find(b => b.id === id);
+  if (!bot) return;
+  const r = await apiFetch(`/api/chatbots/${id}`, {
+    method:'PUT',
+    body: JSON.stringify({ ...bot, activo: !activo })
+  });
+  if (r.ok) { toast(activo ? 'Chatbot pausado' : 'Chatbot activado'); cargarChatbots(); }
+}
+
+async function eliminarChatbot(id) {
+  if (!confirm('¿Eliminar este chatbot?')) return;
+  const r = await apiFetch(`/api/chatbots/${id}`, { method:'DELETE' });
+  if (r.ok) { toast('Chatbot eliminado'); cargarChatbots(); }
+}
+
+function editarChatbot(id) {
+  // Abrir editor visual en nueva pestaña o modal
+  abrirEditorChatbot(id);
+}
+
+function abrirEditorChatbot(chatbotId) {
+  const modal = crearModal('Editor de Chatbot', `
+    <div id="chatbot-editor-container" style="min-height:500px">
+      <div style="display:flex;gap:12px;margin-bottom:16px;flex-wrap:wrap">
+        <button class="btn btn-primary" onclick="agregarNodo('mensaje')">+ Mensaje</button>
+        <button class="btn btn-ghost" onclick="agregarNodo('pregunta')">+ Pregunta</button>
+        <button class="btn btn-ghost" onclick="agregarNodo('accion')">+ Acción</button>
+        <button class="btn btn-ghost" onclick="agregarNodo('fin')">+ Fin</button>
+        <button class="btn btn-secondary" onclick="guardarFlujo('${chatbotId}')" style="margin-left:auto">💾 Guardar flujo</button>
+      </div>
+      <div id="nodes-canvas" style="background:#f8fafc;border:1px solid var(--border);border-radius:8px;min-height:400px;padding:16px;position:relative;overflow:auto">
+        <div id="nodes-list" style="display:flex;flex-wrap:wrap;gap:12px"></div>
+      </div>
+    </div>
+  `, { width: '90vw', maxWidth: '900px' });
+
+  cargarNodosChatbot(chatbotId);
+}
+
+let _nodosActuales = [];
+let _chatbotIdActual = null;
+
+async function cargarNodosChatbot(chatbotId) {
+  _chatbotIdActual = chatbotId;
+  const r = await apiFetch(`/api/chatbots/${chatbotId}`);
+  if (!r.ok) return;
+  const data = await r.json();
+  _nodosActuales = data.nodos || [];
+  renderNodosEditor(data);
+}
+
+function renderNodosEditor(data) {
+  const container = document.getElementById('nodes-list');
+  if (!container) return;
+  const colores = { mensaje:'#dbeafe', pregunta:'#fef3c7', accion:'#d1fae5', fin:'#fee2e2', condicion:'#f3e8ff' };
+
+  container.innerHTML = _nodosActuales.map(n => `
+    <div style="background:${colores[n.tipo]||'#f3f4f6'};border-radius:10px;padding:14px;min-width:180px;max-width:240px;position:relative;box-shadow:0 2px 8px rgba(0,0,0,.06)">
+      <div style="font-size:10px;font-weight:700;text-transform:uppercase;color:#6b7280;margin-bottom:6px">${n.tipo}</div>
+      <div style="font-size:13px;font-weight:600;margin-bottom:8px">${n.nombre||n.tipo}</div>
+      <div style="font-size:12px;color:#374151">${(n.configuracion?.mensaje||'').substring(0,80)||'(sin mensaje)'}</div>
+      <div style="display:flex;gap:6px;margin-top:10px">
+        <button onclick="editarNodo('${n.id}')" style="font-size:11px;padding:3px 8px;border:1px solid #d1d5db;border-radius:4px;cursor:pointer;background:white">Editar</button>
+        <button onclick="eliminarNodo('${n.id}')" style="font-size:11px;padding:3px 8px;border:1px solid #fca5a5;border-radius:4px;cursor:pointer;background:white;color:#dc2626">×</button>
+      </div>
+    </div>
+  `).join('');
+
+  if (!_nodosActuales.length) {
+    container.innerHTML = '<div style="padding:40px;text-align:center;color:var(--text3);width:100%">Arrastra o agrega nodos para construir tu chatbot</div>';
+  }
+}
+
+async function agregarNodo(tipo) {
+  if (!_chatbotIdActual) return;
+  const nombre = prompt(`Nombre del nodo (${tipo}):`);
+  if (!nombre) return;
+  const mensaje = prompt('Mensaje del nodo:') || '';
+  const opciones = tipo === 'pregunta' ? (prompt('Opciones separadas por coma (ej: Sí,No,Más info)') || '').split(',').map(s=>s.trim()).filter(Boolean) : [];
+
+  const r = await apiFetch(`/api/chatbots/${_chatbotIdActual}/nodos`, {
+    method:'POST',
+    body: JSON.stringify({ tipo, nombre, configuracion:{ mensaje, opciones } })
+  });
+  if (r.ok) { toast('Nodo agregado'); cargarNodosChatbot(_chatbotIdActual); }
+}
+
+async function eliminarNodo(nodoId) {
+  if (!confirm('¿Eliminar nodo?')) return;
+  await apiFetch(`/api/chatbots/${_chatbotIdActual}/nodos/${nodoId}`, { method:'DELETE' });
+  cargarNodosChatbot(_chatbotIdActual);
+}
+
+async function editarNodo(nodoId) {
+  const nodo = _nodosActuales.find(n => n.id === nodoId);
+  if (!nodo) return;
+  const nombre = prompt('Nombre del nodo:', nodo.nombre || '');
+  if (nombre === null) return;
+  const mensaje = prompt('Mensaje:', nodo.configuracion?.mensaje || '');
+  const opcionesStr = nodo.configuracion?.opciones?.join(',') || '';
+  const opciones = nodo.tipo === 'pregunta' ? (prompt('Opciones (separadas por coma):', opcionesStr) || '').split(',').map(s=>s.trim()).filter(Boolean) : nodo.configuracion?.opciones || [];
+
+  await apiFetch(`/api/chatbots/${_chatbotIdActual}/nodos/${nodoId}`, {
+    method:'PUT',
+    body: JSON.stringify({ nombre, configuracion:{ mensaje, opciones }, posicion_x: nodo.posicion_x, posicion_y: nodo.posicion_y })
+  });
+  cargarNodosChatbot(_chatbotIdActual);
+}
+
+async function guardarFlujo(chatbotId) {
+  if (!_nodosActuales.length) { toast('Agrega al menos un nodo', 'warn'); return; }
+  const primerNodo = _nodosActuales[0];
+  const r = await apiFetch(`/api/chatbots/${chatbotId}`, {
+    method:'PUT',
+    body: JSON.stringify({ nodo_inicio_id: primerNodo.id, activo: true })
+  });
+  if (r.ok) { toast('Flujo guardado y activado'); cargarChatbots(); }
+}
+
+// Base de conocimiento
+let _bc = [];
+
+async function cargarBaseConocimiento() {
+  const r = await apiFetch('/api/base-conocimiento');
+  _bc = await r.json();
+  renderBaseConocimiento();
+}
+
+function renderBaseConocimiento() {
+  const cont = document.getElementById('bc-lista');
+  if (!cont) return;
+  cont.innerHTML = _bc.length ? _bc.map(d => `
+    <div class="card" style="padding:16px;margin-bottom:8px">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px">
+        <div>
+          <div style="font-weight:600;font-size:14px">${d.titulo}</div>
+          <div style="font-size:11px;color:var(--text3)">${d.categoria||''}</div>
+        </div>
+        <div style="display:flex;gap:6px">
+          <span class="badge ${d.activo?'badge-green':'badge-gray'}">${d.activo?'Activo':'Inactivo'}</span>
+          <button class="btn btn-ghost" onclick="eliminarBC('${d.id}')" style="color:var(--red);padding:2px 8px;font-size:11px">×</button>
+        </div>
+      </div>
+      <div style="font-size:12px;color:var(--text2);line-height:1.5">${d.contenido.substring(0,200)}${d.contenido.length>200?'...':''}</div>
+    </div>
+  `).join('') : '<div style="padding:32px;text-align:center;color:var(--text3)">Sin entradas en la base de conocimiento</div>';
+}
+
+async function agregarEntradaBC() {
+  const titulo = prompt('Título:');
+  if (!titulo) return;
+  const contenido = prompt('Contenido/Respuesta:');
+  if (!contenido) return;
+  const categoria = prompt('Categoría (opcional):') || '';
+  const r = await apiFetch('/api/base-conocimiento', { method:'POST', body:JSON.stringify({ titulo, contenido, categoria }) });
+  if (r.ok) { toast('Entrada agregada'); cargarBaseConocimiento(); }
+}
+
+async function eliminarBC(id) {
+  if (!confirm('¿Eliminar esta entrada?')) return;
+  await apiFetch(`/api/base-conocimiento/${id}`, { method:'DELETE' });
+  cargarBaseConocimiento();
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// CAMPAÑAS — lógica
+// ══════════════════════════════════════════════════════════════════════════════
+let _campanas = [];
+
+async function cargarCampanas() {
+  const r = await apiFetch('/api/campanas');
+  _campanas = await r.json();
+  renderCampanas();
+}
+
+function renderCampanas() {
+  const tabla = document.getElementById('campanas-tabla');
+  if (!tabla) return;
+
+  const estados = {
+    borrador:   { label:'Borrador',   cls:'badge-gray'  },
+    programada: { label:'Programada', cls:'badge-blue'  },
+    enviando:   { label:'Enviando',   cls:'badge-amber' },
+    completada: { label:'Completada', cls:'badge-green' },
+    pausada:    { label:'Pausada',    cls:'badge-gray'  },
+    cancelada:  { label:'Cancelada',  cls:'badge-red'   },
+  };
+
+  tabla.innerHTML = _campanas.length ? `
+    <table class="data-table">
+      <thead><tr>
+        <th>Campaña</th><th>Estado</th><th>Destinatarios</th>
+        <th>Enviados</th><th>Entregados</th><th>Leídos</th><th>Fallidos</th><th>Creada</th><th></th>
+      </tr></thead>
+      <tbody>
+        ${_campanas.map(c => {
+          const est = estados[c.estado]||{label:c.estado,cls:'badge-gray'};
+          const pct_env = c.total_destinatarios>0 ? Math.round(c.total_enviados/c.total_destinatarios*100) : 0;
+          const pct_lei = c.total_enviados>0 ? Math.round(c.total_leidos/c.total_enviados*100) : 0;
+          return `
+          <tr>
+            <td><div style="font-weight:500">${c.nombre}</div><div style="font-size:11px;color:var(--text3)">${c.tipo.toUpperCase()}</div></td>
+            <td><span class="badge ${est.cls}">${est.label}</span></td>
+            <td>${c.total_destinatarios}</td>
+            <td>${c.total_enviados} <span style="color:var(--text3);font-size:11px">(${pct_env}%)</span></td>
+            <td>${c.total_entregados}</td>
+            <td>${c.total_leidos} <span style="color:var(--text3);font-size:11px">(${pct_lei}%)</span></td>
+            <td style="color:var(--red)">${c.total_fallidos}</td>
+            <td style="font-size:12px;color:var(--text3)">${new Date(c.created_at).toLocaleDateString('es')}</td>
+            <td>
+              <div style="display:flex;gap:4px">
+                ${['borrador','programada'].includes(c.estado) ? `<button class="btn btn-ghost" onclick="enviarCampana('${c.id}')">▶ Enviar</button>` : ''}
+                <button class="btn btn-ghost" onclick="verDetalleCampana('${c.id}')">Ver</button>
+                ${['borrador','cancelada','completada'].includes(c.estado) ? `<button class="btn btn-ghost" style="color:var(--red)" onclick="eliminarCampana('${c.id}')">×</button>` : ''}
+              </div>
+            </td>
+          </tr>`;
+        }).join('')}
+      </tbody>
+    </table>
+  ` : '<div style="padding:40px;text-align:center;color:var(--text3)">No hay campañas. Crea tu primera campaña de difusión.</div>';
+}
+
+async function abrirModalNuevaCampana() {
+  const modal = crearModal('Nueva Campaña de Difusión', `
+    <div style="display:flex;flex-direction:column;gap:14px">
+      <div>
+        <label class="form-label">Nombre de la campaña *</label>
+        <input class="form-input" id="camp-nombre" placeholder="Ej: Promoción Noviembre">
+      </div>
+      <div>
+        <label class="form-label">Tipo de mensaje</label>
+        <select class="form-input" id="camp-tipo-msg">
+          <option value="texto">Mensaje de texto libre</option>
+          <option value="plantilla">Plantilla de WhatsApp</option>
+        </select>
+      </div>
+      <div id="camp-mensaje-div">
+        <label class="form-label">Mensaje *</label>
+        <textarea class="form-input" id="camp-mensaje" rows="4" placeholder="Escribe tu mensaje aquí..."></textarea>
+      </div>
+      <div id="camp-plantilla-div" style="display:none">
+        <label class="form-label">Nombre de plantilla aprobada</label>
+        <input class="form-input" id="camp-plantilla" placeholder="Ej: hello_world">
+      </div>
+      <div>
+        <label class="form-label">Destinatarios — pega o escribe teléfonos (uno por línea)</label>
+        <textarea class="form-input" id="camp-telefonos" rows="5" placeholder="573001234567&#10;573009876543&#10;..."></textarea>
+        <div style="font-size:11px;color:var(--text3);margin-top:4px">Formato internacional sin +. Ej: 573001234567</div>
+      </div>
+      <div>
+        <label class="form-label">Programar para (opcional)</label>
+        <input class="form-input" type="datetime-local" id="camp-fecha">
+      </div>
+      <button class="btn btn-primary" onclick="crearCampana()">Crear campaña</button>
+    </div>
+  `);
+
+  document.getElementById('camp-tipo-msg').addEventListener('change', function() {
+    document.getElementById('camp-mensaje-div').style.display = this.value === 'texto' ? '' : 'none';
+    document.getElementById('camp-plantilla-div').style.display = this.value === 'plantilla' ? '' : 'none';
+  });
+}
+
+async function crearCampana() {
+  const nombre = document.getElementById('camp-nombre')?.value?.trim();
+  const tipoMsg = document.getElementById('camp-tipo-msg')?.value;
+  const mensaje = document.getElementById('camp-mensaje')?.value?.trim();
+  const plantilla = document.getElementById('camp-plantilla')?.value?.trim();
+  const telefonosRaw = document.getElementById('camp-telefonos')?.value || '';
+  const fecha = document.getElementById('camp-fecha')?.value;
+
+  if (!nombre) { toast('Nombre requerido', 'error'); return; }
+
+  const destinatarios = telefonosRaw
+    .split('\n')
+    .map(t => t.trim().replace(/\D/g,''))
+    .filter(t => t.length >= 8)
+    .map(t => ({ telefono: t }));
+
+  if (!destinatarios.length) { toast('Agrega al menos un destinatario', 'error'); return; }
+
+  const body = {
+    nombre, tipo: 'whatsapp', destinatarios,
+    mensaje: tipoMsg === 'texto' ? mensaje : undefined,
+    plantilla_nombre: tipoMsg === 'plantilla' ? plantilla : undefined,
+    programada_para: fecha || undefined,
+  };
+
+  const r = await apiFetch('/api/campanas', { method:'POST', body: JSON.stringify(body) });
+  if (r.ok) {
+    cerrarModal();
+    toast(`Campaña creada con ${destinatarios.length} destinatarios`);
+    cargarCampanas();
+  } else {
+    const err = await r.json();
+    toast(err.message || 'Error al crear campaña', 'error');
+  }
+}
+
+async function enviarCampana(id) {
+  if (!confirm('¿Iniciar el envío de esta campaña ahora?')) return;
+  const r = await apiFetch(`/api/campanas/${id}/enviar`, { method:'POST' });
+  if (r.ok) { toast('Campaña iniciada'); setTimeout(cargarCampanas, 2000); }
+  else toast('Error al enviar', 'error');
+}
+
+async function eliminarCampana(id) {
+  if (!confirm('¿Eliminar esta campaña?')) return;
+  await apiFetch(`/api/campanas/${id}`, { method:'DELETE' });
+  toast('Campaña eliminada');
+  cargarCampanas();
+}
+
+async function verDetalleCampana(id) {
+  const r = await apiFetch(`/api/campanas/${id}`);
+  if (!r.ok) return;
+  const c = await r.json();
+  const dest = c.destinatarios || [];
+  const pct = c.total_destinatarios > 0 ? Math.round(c.total_enviados/c.total_destinatarios*100) : 0;
+
+  crearModal(`Campaña: ${c.nombre}`, `
+    <div style="display:flex;gap:16px;margin-bottom:20px;flex-wrap:wrap">
+      <div class="stat-mini"><div class="stat-val">${c.total_destinatarios}</div><div class="stat-lbl">Destinatarios</div></div>
+      <div class="stat-mini"><div class="stat-val" style="color:var(--green)">${c.total_enviados}</div><div class="stat-lbl">Enviados (${pct}%)</div></div>
+      <div class="stat-mini"><div class="stat-val" style="color:var(--blue)">${c.total_entregados}</div><div class="stat-lbl">Entregados</div></div>
+      <div class="stat-mini"><div class="stat-val" style="color:var(--purple)">${c.total_leidos}</div><div class="stat-lbl">Leídos</div></div>
+      <div class="stat-mini"><div class="stat-val" style="color:var(--red)">${c.total_fallidos}</div><div class="stat-lbl">Fallidos</div></div>
+    </div>
+    <table class="data-table" style="max-height:300px;overflow-y:auto;display:block">
+      <thead><tr><th>Teléfono</th><th>Nombre</th><th>Estado</th></tr></thead>
+      <tbody>${dest.slice(0,100).map(d=>`<tr>
+        <td>${d.telefono}</td>
+        <td>${d.nombre||d.contacto_nombre_real||'—'}</td>
+        <td><span class="badge ${d.estado==='enviado'?'badge-blue':d.estado==='entregado'?'badge-green':d.estado==='leido'?'badge-purple':d.estado==='fallido'?'badge-red':'badge-gray'}">${d.estado}</span></td>
+      </tr>`).join('')}</tbody>
+    </table>
+  `);
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// REPORTES — lógica
+// ══════════════════════════════════════════════════════════════════════════════
+async function cargarReportes() {
+  const desde = document.getElementById('rep-desde')?.value || '';
+  const hasta = document.getElementById('rep-hasta')?.value || '';
+  const params = new URLSearchParams();
+  if (desde) params.set('desde', desde);
+  if (hasta) params.set('hasta', hasta);
+
+  const [r1, r2, r3] = await Promise.all([
+    apiFetch('/api/reportes/resumen?' + params),
+    apiFetch('/api/reportes/agentes?' + params),
+    apiFetch('/api/reportes/chatbots'),
+  ]);
+
+  if (r1.ok) { const data = await r1.json(); renderResumenReportes(data); }
+  if (r2.ok) { const data = await r2.json(); renderReporteAgentes(data); }
+  if (r3.ok) { const data = await r3.json(); renderReporteChatbots(data); }
+}
+
+function renderResumenReportes(d) {
+  const cont = document.getElementById('rep-resumen');
+  if (!cont) return;
+  cont.innerHTML = `
+    <div class="stats-grid" style="margin-bottom:16px">
+      <div class="stat-card"><div class="stat-value">${d.mensajes?.entrantes||0}</div><div class="stat-label">Mensajes entrantes</div></div>
+      <div class="stat-card"><div class="stat-value">${d.mensajes?.salientes||0}</div><div class="stat-label">Mensajes enviados</div></div>
+      <div class="stat-card"><div class="stat-value">${d.conversaciones?.total||0}</div><div class="stat-label">Conversaciones</div></div>
+      <div class="stat-card"><div class="stat-value">${d.conversaciones?.resueltas||0}</div><div class="stat-label">Resueltas</div></div>
+      <div class="stat-card"><div class="stat-value">${d.contactos_nuevos||0}</div><div class="stat-label">Contactos nuevos</div></div>
+      <div class="stat-card"><div class="stat-value">${d.tiempo_respuesta_promedio_min||0}min</div><div class="stat-label">Tiempo resp. promedio</div></div>
+    </div>
+    ${d.mensajes_por_dia?.length ? `
+      <div class="chart-card">
+        <div class="chart-title">Mensajes por día (${d.periodo?.desde} – ${d.periodo?.hasta})</div>
+        <div style="display:flex;align-items:flex-end;gap:2px;height:80px;margin-top:8px">
+          ${d.mensajes_por_dia.map(dia => {
+            const max = Math.max(...d.mensajes_por_dia.map(x => x.entrantes+x.salientes), 1);
+            const h = Math.round(((dia.entrantes+dia.salientes)/max)*80);
+            return `<div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:2px">
+              <div style="background:var(--green);width:100%;height:${h}px;border-radius:2px 2px 0 0" title="${dia.fecha}: ${dia.entrantes} entrada, ${dia.salientes} salida"></div>
+            </div>`;
+          }).join('')}
+        </div>
+      </div>
+    ` : ''}
+  `;
+}
+
+function renderReporteAgentes(agentes) {
+  const cont = document.getElementById('rep-agentes');
+  if (!cont) return;
+  cont.innerHTML = agentes.length ? `
+    <table class="data-table">
+      <thead><tr><th>Agente</th><th>Rol</th><th>Conversaciones</th><th>Resueltas</th><th>Mensajes enviados</th><th>Tiempo resp. (min)</th></tr></thead>
+      <tbody>
+        ${agentes.map(a => `<tr>
+          <td><div style="font-weight:500">${a.nombre}</div><div style="font-size:11px;color:var(--text3)">${a.email}</div></td>
+          <td><span class="badge badge-gray">${a.rol}</span></td>
+          <td>${a.conversaciones_asignadas}</td>
+          <td>${a.conversaciones_resueltas}</td>
+          <td>${a.mensajes_enviados}</td>
+          <td>${a.tiempo_respuesta_promedio_min||'—'}</td>
+        </tr>`).join('')}
+      </tbody>
+    </table>
+  ` : '<div style="padding:20px;text-align:center;color:var(--text3)">Sin datos de agentes</div>';
+}
+
+function renderReporteChatbots(bots) {
+  const cont = document.getElementById('rep-chatbots');
+  if (!cont) return;
+  cont.innerHTML = bots.length ? `
+    <table class="data-table">
+      <thead><tr><th>Chatbot</th><th>Sesiones</th><th>Completadas</th><th>Transferidas</th><th>Abandonadas</th><th>Activas</th><th>% Completado</th></tr></thead>
+      <tbody>
+        ${bots.map(b => `<tr>
+          <td><div style="font-weight:500">${b.nombre}</div><span class="badge ${b.activo?'badge-green':'badge-gray'}">${b.activo?'Activo':'Inactivo'}</span></td>
+          <td>${b.sesiones_total}</td>
+          <td style="color:var(--green)">${b.completadas}</td>
+          <td style="color:var(--blue)">${b.transferidas}</td>
+          <td style="color:var(--red)">${b.abandonadas}</td>
+          <td style="color:var(--amber)">${b.activas}</td>
+          <td><strong>${b.tasa_completado}%</strong></td>
+        </tr>`).join('')}
+      </tbody>
+    </table>
+  ` : '<div style="padding:20px;text-align:center;color:var(--text3)">Sin datos de chatbots</div>';
+}
+
+async function exportarCSV() {
+  const desde = document.getElementById('rep-desde')?.value||'';
+  const hasta = document.getElementById('rep-hasta')?.value||'';
+  const params = new URLSearchParams();
+  if (desde) params.set('desde',desde);
+  if (hasta) params.set('hasta',hasta);
+  window.open(API_BASE + '/api/reportes/exportar?' + params + '&token=' + localStorage.getItem('token'));
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// Helpers para modales de vistas v2
+// ══════════════════════════════════════════════════════════════════════════════
+function crearModal(titulo, htmlContent, opts = {}) {
+  // Reutilizar o crear overlay modal genérico
+  let overlay = document.getElementById('generic-modal-overlay');
+  if (overlay) overlay.remove();
+
+  overlay = document.createElement('div');
+  overlay.id = 'generic-modal-overlay';
+  overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:3000;display:flex;align-items:center;justify-content:center;padding:20px';
+  overlay.onclick = e => { if (e.target === overlay) cerrarModal(); };
+
+  const modal = document.createElement('div');
+  modal.style.cssText = `background:white;border-radius:12px;max-height:90vh;overflow-y:auto;width:${opts.width||'600px'};max-width:${opts.maxWidth||'95vw'};padding:24px;position:relative`;
+
+  modal.innerHTML = `
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">
+      <div style="font-size:18px;font-weight:700">${titulo}</div>
+      <button onclick="cerrarModal()" style="background:none;border:none;cursor:pointer;font-size:22px;color:var(--text2)">×</button>
+    </div>
+    ${htmlContent}
+  `;
+
+  overlay.appendChild(modal);
+  document.body.appendChild(overlay);
+  return modal;
+}
+
+function cerrarModal() {
+  document.getElementById('generic-modal-overlay')?.remove();
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// showView extendido para nuevas secciones
+// ══════════════════════════════════════════════════════════════════════════════
+const _origShowView = showView;
+showView = function(name) {
+  _origShowView(name);
+  if (name === 'chatbots') { cargarChatbots(); cargarBaseConocimiento(); }
+  if (name === 'campanas') { cargarCampanas(); }
+  if (name === 'reportes') { cargarReportes(); }
+};
 
 // ── ARRANCAR ───────────────────────────────────────────────────────────────────
 showView('chats');

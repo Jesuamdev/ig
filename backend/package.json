@@ -7,8 +7,10 @@
     "dev":         "nodemon src/index.js",
     "start":       "node src/index.js",
     "migrate":     "node src/models/migrate.js",
+    "migrate:v2":  "node src/models/migrate_v2.js",
+    "migrate:all": "npm run migrate && npm run migrate:v2",
     "seed":        "node src/models/seed.js",
-    "setup":       "npm run migrate && npm run seed"
+    "setup":       "npm run migrate:all && npm run seed"
   },
   "dependencies": {
     "axios":              "^1.6.7",

@@ -415,4 +415,289 @@ router.post('/portal/solicitudes/:id/subir', authenticate, soloCliente, ...(() =
   ];
 })());
 
+// ══════════════════════════════════════════════════════════════════════════════
+// NUEVAS RUTAS v2
+// ══════════════════════════════════════════════════════════════════════════════
+const chatbotCtrl  = require('../controllers/chatbotController');
+const campanaCtrl  = require('../controllers/campanaController');
+const reportesCtrl = require('../controllers/reportesController');
+const integCtrl    = require('../controllers/integracionController');
+
+// ── MÚLTIPLES NÚMEROS WHATSAPP ─────────────────────────────────────────────────
+router.get   ('/numeros',      authenticate, soloAdmin, integCtrl.listarNumeros);
+router.post  ('/numeros',      authenticate, soloAdmin, integCtrl.crearNumero);
+router.put   ('/numeros/:id',  authenticate, soloAdmin, integCtrl.actualizarNumero);
+router.delete('/numeros/:id',  authenticate, soloAdmin, integCtrl.eliminarNumero);
+
+// ── REGLAS DE ENRUTAMIENTO ─────────────────────────────────────────────────────
+router.get   ('/reglas-enrutamiento',      authenticate, soloAdmin, integCtrl.listarReglas);
+router.post  ('/reglas-enrutamiento',      authenticate, soloAdmin, integCtrl.crearRegla);
+router.put   ('/reglas-enrutamiento/:id',  authenticate, soloAdmin, integCtrl.actualizarRegla);
+router.delete('/reglas-enrutamiento/:id',  authenticate, soloAdmin, integCtrl.eliminarRegla);
+
+// ── CHATBOTS ───────────────────────────────────────────────────────────────────
+router.get   ('/chatbots',                           authenticate, soloAgente, chatbotCtrl.listarChatbots);
+router.post  ('/chatbots',                           authenticate, soloAgente, chatbotCtrl.crearChatbot);
+router.get   ('/chatbots/:id',                       authenticate, soloAgente, chatbotCtrl.obtenerChatbot);
+router.put   ('/chatbots/:id',                       authenticate, soloAgente, chatbotCtrl.actualizarChatbot);
+router.delete('/chatbots/:id',                       authenticate, soloAgente, chatbotCtrl.eliminarChatbot);
+// Nodos
+router.post  ('/chatbots/:chatbot_id/nodos',                    authenticate, soloAgente, chatbotCtrl.crearNodo);
+router.put   ('/chatbots/:chatbot_id/nodos/:nodo_id',           authenticate, soloAgente, chatbotCtrl.actualizarNodo);
+router.delete('/chatbots/:chatbot_id/nodos/:nodo_id',           authenticate, soloAgente, chatbotCtrl.eliminarNodo);
+// Conexiones
+router.post  ('/chatbots/:chatbot_id/conexiones',               authenticate, soloAgente, chatbotCtrl.crearConexion);
+router.delete('/chatbots/:chatbot_id/conexiones/:conexion_id',  authenticate, soloAgente, chatbotCtrl.eliminarConexion);
+// Sesiones
+router.get   ('/chatbots/:chatbot_id/sesiones',                 authenticate, soloAgente, chatbotCtrl.listarSesiones);
+
+// ── BASE DE CONOCIMIENTO (IA) ──────────────────────────────────────────────────
+router.get   ('/base-conocimiento',      authenticate, soloAgente, chatbotCtrl.listarBaseConocimiento);
+router.post  ('/base-conocimiento',      authenticate, soloAgente, chatbotCtrl.crearEntradaBC);
+router.put   ('/base-conocimiento/:id',  authenticate, soloAgente, chatbotCtrl.actualizarEntradaBC);
+router.delete('/base-conocimiento/:id',  authenticate, soloAgente, chatbotCtrl.eliminarEntradaBC);
+
+// ── CAMPAÑAS ───────────────────────────────────────────────────────────────────
+router.get   ('/campanas',                              authenticate, soloAgente, campanaCtrl.listar);
+router.post  ('/campanas',                              authenticate, soloAgente, campanaCtrl.crear);
+router.get   ('/campanas/:id',                          authenticate, soloAgente, campanaCtrl.obtener);
+router.post  ('/campanas/:id/enviar',                   authenticate, soloAgente, campanaCtrl.enviar);
+router.post  ('/campanas/:id/pausar',                   authenticate, soloAdmin,  campanaCtrl.pausar);
+router.post  ('/campanas/:id/cancelar',                 authenticate, soloAdmin,  campanaCtrl.cancelar);
+router.delete('/campanas/:id',                          authenticate, soloAdmin,  campanaCtrl.eliminar);
+router.put   ('/campanas/:id/destinatarios',            authenticate, soloAgente, campanaCtrl.actualizarDestinatarios);
+router.post  ('/campanas/:campana_id/agregar-contactos', authenticate, soloAgente, campanaCtrl.agregarDesdeContactos);
+
+// ── PLANTILLAS DE MENSAJES ─────────────────────────────────────────────────────
+router.get   ('/plantillas',      authenticate, soloAgente, integCtrl.listarPlantillas);
+router.post  ('/plantillas',      authenticate, soloAgente, integCtrl.crearPlantilla);
+router.put   ('/plantillas/:id',  authenticate, soloAgente, integCtrl.actualizarPlantilla);
+router.delete('/plantillas/:id',  authenticate, soloAgente, integCtrl.eliminarPlantilla);
+
+// ── SECUENCIAS ─────────────────────────────────────────────────────────────────
+router.get   ('/secuencias',                      authenticate, soloAgente, integCtrl.listarSecuencias);
+router.post  ('/secuencias',                      authenticate, soloAgente, integCtrl.crearSecuencia);
+router.get   ('/secuencias/:id',                  authenticate, soloAgente, integCtrl.obtenerSecuencia);
+router.put   ('/secuencias/:id',                  authenticate, soloAgente, integCtrl.actualizarSecuencia);
+router.post  ('/secuencias/:id/suscribir',        authenticate, soloAgente, integCtrl.suscribirContacto);
+
+// ── REPORTES Y ANALÍTICA ───────────────────────────────────────────────────────
+router.get('/reportes/resumen',       authenticate, soloAgente, reportesCtrl.resumenAvanzado);
+router.get('/reportes/agentes',       authenticate, soloAgente, reportesCtrl.rendimientoAgentes);
+router.get('/reportes/campanas',      authenticate, soloAgente, reportesCtrl.reporteCampanas);
+router.get('/reportes/chatbots',      authenticate, soloAgente, reportesCtrl.reporteChatbots);
+router.get('/reportes/exportar',      authenticate, soloAgente, reportesCtrl.exportarConversaciones);
+
+// ── WEBHOOKS SALIENTES ─────────────────────────────────────────────────────────
+router.get   ('/webhooks',           authenticate, soloAdmin, integCtrl.listarWebhooks);
+router.post  ('/webhooks',           authenticate, soloAdmin, integCtrl.crearWebhook);
+router.put   ('/webhooks/:id',       authenticate, soloAdmin, integCtrl.actualizarWebhook);
+router.delete('/webhooks/:id',       authenticate, soloAdmin, integCtrl.eliminarWebhook);
+router.get   ('/webhooks/:id/logs',  authenticate, soloAdmin, integCtrl.logsWebhook);
+router.post  ('/webhooks/:id/probar',authenticate, soloAdmin, integCtrl.probarWebhook);
+
+// ── INTEGRACIONES EXTERNAS ─────────────────────────────────────────────────────
+router.get ('/integraciones',         authenticate, soloAdmin, integCtrl.listarIntegraciones);
+router.post('/integraciones',         authenticate, soloAdmin, integCtrl.upsertIntegracion);
+router.post('/integraciones/:id/toggle', authenticate, soloAdmin, integCtrl.toggleIntegracion);
+
+// ── WIDGET WEB ─────────────────────────────────────────────────────────────────
+router.get   ('/widgets',               authenticate, soloAdmin, integCtrl.listarWidgets);
+router.post  ('/widgets',               authenticate, soloAdmin, integCtrl.crearWidget);
+router.put   ('/widgets/:id',           authenticate, soloAdmin, integCtrl.actualizarWidget);
+router.delete('/widgets/:id',           authenticate, soloAdmin, integCtrl.eliminarWidget);
+router.get   ('/widgets/:id/snippet',   authenticate, soloAdmin, integCtrl.widgetSnippet);
+// Endpoint público para registrar clic en widget
+router.post('/widget/:id/clic', async (req, res) => {
+  await query(`UPDATE widgets SET clics=clics+1 WHERE id=$1`, [req.params.id]).catch(() => {});
+  const { rows } = await query(`SELECT * FROM widgets WHERE id=$1 AND activo=TRUE`, [req.params.id]);
+  if (!rows.length) return res.status(404).json({ message: 'Widget no encontrado' });
+  res.json({ telefono: rows[0].telefono, mensaje: rows[0].mensaje_bienvenida, color: rows[0].color_primario });
+});
+
+// ── IA CONFIGURACIÓN ───────────────────────────────────────────────────────────
+router.get ('/ia/config',  authenticate, soloAdmin, integCtrl.obtenerConfigIA);
+router.post('/ia/config',  authenticate, soloAdmin, integCtrl.upsertConfigIA);
+
+// ── IA: DETECCIÓN DE INTENCIÓN / RESPUESTA ─────────────────────────────────────
+router.post('/ia/detectar-intencion', authenticate, soloAgente, async (req, res) => {
+  try {
+    const { texto } = req.body;
+    const aiService = require('../services/aiService');
+    const resultado = await aiService.detectarIntencion(texto);
+    res.json(resultado || { intencion: 'no_disponible', confianza: 0 });
+  } catch (err) { res.status(500).json({ message: err.message }); }
+});
+
+router.post('/ia/traducir', authenticate, soloAgente, async (req, res) => {
+  try {
+    const { texto, idioma } = req.body;
+    const aiService = require('../services/aiService');
+    const traducido = await aiService.traducir(texto, idioma || 'es');
+    res.json({ original: texto, traducido, idioma });
+  } catch (err) { res.status(500).json({ message: err.message }); }
+});
+
+router.post('/ia/respuesta', authenticate, soloAgente, async (req, res) => {
+  try {
+    const { pregunta, contexto } = req.body;
+    const aiService = require('../services/aiService');
+    const respuesta = await aiService.generarRespuesta(pregunta, contexto);
+    res.json({ respuesta: respuesta || null, disponible: !!respuesta });
+  } catch (err) { res.status(500).json({ message: err.message }); }
+});
+
+// ── ETIQUETAS ──────────────────────────────────────────────────────────────────
+router.get   ('/etiquetas',      authenticate, soloAgente, integCtrl.listarEtiquetas);
+router.post  ('/etiquetas',      authenticate, soloAgente, integCtrl.crearEtiqueta);
+router.delete('/etiquetas/:id',  authenticate, soloAdmin,  integCtrl.eliminarEtiqueta);
+
+// ── TIMELINE DEL CONTACTO (WhatsApp) ──────────────────────────────────────────
+router.get('/contactos/:id/timeline', authenticate, soloAgente, async (req, res) => {
+  try {
+    const { rows: mensajes } = await query(`
+      SELECT m.*, c.numero_caso
+      FROM mensajes m
+      JOIN conversaciones c ON m.conversacion_id=c.id
+      JOIN contactos co ON c.contacto_id=co.id
+      WHERE co.id=$1
+      ORDER BY m.created_at DESC LIMIT 100
+    `, [req.params.id]);
+    const { rows: sesiones } = await query(`
+      SELECT s.*, b.nombre AS chatbot_nombre
+      FROM chatbot_sesiones s
+      JOIN chatbots b ON s.chatbot_id=b.id
+      WHERE s.contacto_id=$1
+      ORDER BY s.created_at DESC LIMIT 20
+    `, [req.params.id]);
+    const { rows: suscripciones } = await query(`
+      SELECT ss.*, s.nombre AS secuencia_nombre
+      FROM secuencia_suscripciones ss
+      JOIN secuencias s ON ss.secuencia_id=s.id
+      WHERE ss.contacto_id=$1
+      ORDER BY ss.created_at DESC LIMIT 20
+    `, [req.params.id]);
+    res.json({ mensajes, sesiones, suscripciones });
+  } catch (err) { res.status(500).json({ message: err.message }); }
+});
+
+// ── INTEGRACIÓN GOOGLE SHEETS: exportar contactos ─────────────────────────────
+router.post('/integraciones/google-sheets/sync-contactos', authenticate, soloAdmin, async (req, res) => {
+  try {
+    const { rows: integ } = await query(`SELECT * FROM integraciones WHERE tipo='google_sheets' AND activa=TRUE LIMIT 1`);
+    if (!integ.length) return res.status(400).json({ message: 'Integración Google Sheets no configurada o inactiva' });
+
+    const config = integ[0].configuracion;
+    const { rows: contactos } = await query(`
+      SELECT c.telefono, c.nombre, c.email, c.empresa, c.etiquetas, c.ultimo_mensaje,
+             cl.nombre||' '||COALESCE(cl.apellido,'') AS cliente_nombre
+      FROM contactos c LEFT JOIN clientes cl ON c.cliente_id=cl.id
+      ORDER BY c.ultimo_mensaje DESC LIMIT 10000
+    `);
+
+    // Formato para Google Sheets API (requiere webhook URL de Apps Script o similar)
+    if (config.webhook_url) {
+      const axios = require('axios');
+      await axios.post(config.webhook_url, { contactos }, { timeout: 30000 });
+      await query(`UPDATE integraciones SET ultimo_sync=NOW() WHERE id=$1`, [integ[0].id]);
+      res.json({ success: true, sincronizados: contactos.length });
+    } else {
+      res.json({ success: true, datos: contactos, mensaje: 'Configura un webhook_url de Google Apps Script para sincronizar' });
+    }
+  } catch (err) { res.status(500).json({ message: err.message }); }
+});
+
+// ── INTEGRACIÓN SHOPIFY: recibir eventos ──────────────────────────────────────
+router.post('/integraciones/shopify/webhook', async (req, res) => {
+  try {
+    const topic = req.headers['x-shopify-topic'];
+    const shopDomain = req.headers['x-shopify-shop-domain'];
+
+    const { rows: integ } = await query(`SELECT * FROM integraciones WHERE tipo='shopify' AND activa=TRUE LIMIT 1`);
+    if (!integ.length) return res.status(200).json({ ignored: true });
+
+    const data = req.body;
+    const { despacharEvento } = require('../services/webhookSalienteService');
+
+    if (topic === 'orders/create') {
+      const telefono = data.shipping_address?.phone || data.billing_address?.phone;
+      const nombre   = `${data.customer?.first_name || ''} ${data.customer?.last_name || ''}`.trim();
+      const email    = data.customer?.email;
+
+      if (telefono) {
+        const tel = telefono.replace(/\D/g, '');
+        await query(`
+          INSERT INTO contactos (telefono, nombre, email) VALUES ($1,$2,$3)
+          ON CONFLICT (telefono) DO UPDATE SET nombre=COALESCE(contactos.nombre,$2)
+        `, [tel, nombre, email]).catch(() => {});
+      }
+
+      await despacharEvento('shopify.pedido_creado', {
+        pedido_id: data.id, total: data.total_price, cliente: nombre, email,
+      });
+    } else if (topic === 'customers/create') {
+      await despacharEvento('shopify.cliente_creado', {
+        cliente_id: data.id, nombre: `${data.first_name} ${data.last_name}`, email: data.email,
+      });
+    }
+
+    res.status(200).json({ received: true });
+  } catch (err) { res.status(500).json({ message: err.message }); }
+});
+
+// ── INTEGRACIÓN WOOCOMMERCE: recibir eventos ───────────────────────────────────
+router.post('/integraciones/woocommerce/webhook', async (req, res) => {
+  try {
+    const topic = req.headers['x-wc-webhook-topic'];
+    const { rows: integ } = await query(`SELECT * FROM integraciones WHERE tipo='woocommerce' AND activa=TRUE LIMIT 1`);
+    if (!integ.length) return res.status(200).json({ ignored: true });
+
+    const data = req.body;
+    const { despacharEvento } = require('../services/webhookSalienteService');
+
+    if (topic === 'order.created') {
+      const telefono = data.billing?.phone;
+      const nombre   = `${data.billing?.first_name || ''} ${data.billing?.last_name || ''}`.trim();
+      const email    = data.billing?.email;
+
+      if (telefono) {
+        await query(`
+          INSERT INTO contactos (telefono, nombre, email) VALUES ($1,$2,$3)
+          ON CONFLICT (telefono) DO UPDATE SET nombre=COALESCE(contactos.nombre,$2)
+        `, [telefono.replace(/\D/g,''), nombre, email]).catch(() => {});
+      }
+
+      await despacharEvento('woocommerce.pedido_creado', {
+        pedido_id: data.id, total: data.total, cliente: nombre, email,
+      });
+    }
+
+    res.status(200).json({ received: true });
+  } catch (err) { res.status(500).json({ message: err.message }); }
+});
+
+// ── HEALTH CHECK EXTENDIDO ─────────────────────────────────────────────────────
+router.get('/system/status', authenticate, soloAdmin, async (req, res) => {
+  try {
+    const { rows: db } = await query(`SELECT NOW() AS time, version() AS pg_version`);
+    const { rows: stats } = await query(`
+      SELECT
+        (SELECT COUNT(*) FROM clientes WHERE estado='activo') AS clientes,
+        (SELECT COUNT(*) FROM contactos) AS contactos,
+        (SELECT COUNT(*) FROM conversaciones WHERE estado IN ('abierto','en_proceso')) AS conversaciones_abiertas,
+        (SELECT COUNT(*) FROM chatbots WHERE activo=TRUE) AS chatbots_activos,
+        (SELECT COUNT(*) FROM chatbot_sesiones WHERE estado='activo') AS sesiones_chatbot,
+        (SELECT COUNT(*) FROM campanas WHERE estado='enviando') AS campanas_activas,
+        (SELECT COUNT(*) FROM secuencia_suscripciones WHERE estado='activo') AS suscripciones_activas
+    `);
+    res.json({
+      status: 'ok',
+      db: { time: db[0].time, version: db[0].pg_version.split(' ').slice(0,2).join(' ') },
+      stats: stats[0],
+      uptime_seconds: Math.floor(process.uptime()),
+      memory_mb: Math.round(process.memoryUsage().rss / 1024 / 1024),
+    });
+  } catch (err) { res.status(500).json({ status: 'error', message: err.message }); }
+});
+
 module.exports = router;
