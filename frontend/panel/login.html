@@ -60,12 +60,17 @@
     <input type="password" id="password" placeholder="••••••••" autocomplete="current-password">
   </div>
   <button class="btn" id="btn" onclick="login()">Entrar al panel</button>
+  <div class="portal-link" style="margin-top:16px">
+    <a href="forgot-password.html">¿Olvidaste tu contraseña?</a>
+  </div>
   <div class="portal-link">
     ¿Eres cliente? <a href="../portal/login.html">Accede a tu portal →</a>
   </div>
 </div>
 <script>
-const API = localStorage.getItem('ce_api') || 'https://ig-production-d1bf.up.railway.app';
+const _saved = localStorage.getItem('ce_api');
+const _isLocal = location.protocol === 'file:' || location.hostname === 'localhost' || location.hostname === '127.0.0.1';
+const API = _saved || (_isLocal ? 'http://localhost:3001' : 'https://ig-production-d1bf.up.railway.app');
 document.getElementById('password').addEventListener('keydown', e => e.key === 'Enter' && login());
 
 async function login() {

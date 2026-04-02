@@ -323,7 +323,7 @@ textarea.prop-input{resize:vertical;min-height:80px;line-height:1.5}
 const params   = new URLSearchParams(location.search);
 const botId    = params.get('id');
 const API_BASE = params.get('api') || 'http://localhost:3001';
-const TOKEN    = localStorage.getItem('token');
+const TOKEN    = localStorage.getItem('ce_token') || localStorage.getItem('token');
 
 let botData      = null;
 let nodos        = [];
@@ -368,6 +368,15 @@ async function init() {
 async function cargarBot() {
   try {
     const r = await apiFetch(`/api/chatbots/${botId}`);
+    if (r.status === 404) {
+      document.body.innerHTML = `<div style="display:flex;align-items:center;justify-content:center;height:100vh;font-family:sans-serif;flex-direction:column;gap:16px;background:#0f172a;color:#94a3b8">
+        <div style="font-size:48px">⚠️</div>
+        <div style="font-size:20px;color:#f1f5f9">Chatbot no encontrado</div>
+        <div style="font-size:14px">Este chatbot ya no existe. Crea uno nuevo desde el panel.</div>
+        <button onclick="window.close()" style="margin-top:8px;padding:10px 24px;background:#3b82f6;color:white;border:none;border-radius:8px;cursor:pointer;font-size:14px">Cerrar</button>
+      </div>`;
+      return;
+    }
     if (!r.ok) throw new Error('No se pudo cargar el chatbot');
     botData = await r.json();
     document.getElementById('tb-bot-name').textContent = botData.nombre;

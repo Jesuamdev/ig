@@ -14,7 +14,7 @@ async function llamarMock(prompt) {
     const match = prompt.match(/:\n\n(.+)$/s);
     return match ? `[traducido] ${match[1].trim()}` : '[traducido]';
   }
-  return '¡Hola! Soy el asistente de demostración. Actualmente estoy en modo prueba sin API key real. Configura ANTHROPIC_API_KEY en el archivo .env para activar Claude AI.';
+  return '¡Hola! Soy el asistente virtual. Para activar IA real configura GROQ_API_KEY (gratis en console.groq.com) o ANTHROPIC_API_KEY en el archivo .env.';
 }
 
 let _config = null;
@@ -30,9 +30,20 @@ async function obtenerConfig() {
     }
   } catch { /* tabla puede no existir aún */ }
 
-  // Fallback a variables de entorno
+  // Fallback a variables de entorno (prioridad: Groq > Anthropic > OpenAI)
+  const groqKey      = process.env.GROQ_API_KEY;
   const anthropicKey = process.env.ANTHROPIC_API_KEY;
   const openaiKey    = process.env.OPENAI_API_KEY;
+
+  if (groqKey && !groqKey.startsWith('gsk_aqui')) {
+    _config = {
+      tipo: 'groq', api_key: groqKey,
+      modelo: process.env.GROQ_MODEL || 'llama-3.3-70b-versatile',
+      funciones: { deteccion_intencion: true, traduccion: true, respuesta_automatica: true },
+      _cacheTime: Date.now(),
+    };
+    return _config;
+  }
   if (anthropicKey && !anthropicKey.startsWith('sk-ant-aqui')) {
     _config = {
       tipo: 'anthropic', api_key: anthropicKey,
@@ -132,7 +143,7 @@ Responde de forma amigable y concisa en el mismo idioma del cliente. Si no tiene
 
     return await llamarOpenAI(config, prompt, 0.7);
   } catch (err) {
-    logger.error('aiService.generarRespuesta:', err.message);
+    logger.error('aiService.generarRespuesta:', err.response?.data?.error?.message || err.message);
     return null;
   }
 }
@@ -145,26 +156,54 @@ async function llamarOpenAI(config, prompt, temperatura = 0.7) {
 
   // Soporte para Anthropic
   if (config.tipo === 'anthropic') {
-    const res = await axios.post('https://api.anthropic.com/v1/messages', {
-      model: modelo,
-      max_tokens: 1024,
-      messages: [{ role: 'user', content: prompt }],
-    }, {
-      headers: { ...headers, 'anthropic-version': '2023-06-01', 'x-api-key': config.api_key },
-      timeout: 15000,
-    });
-    return res.data.content?.[0]?.text || null;
+    try {
+      const res = await axios.post('https://api.anthropic.com/v1/messages', {
+        model: modelo,
+        max_tokens: 1024,
+        messages: [{ role: 'user', content: prompt }],
+      }, {
+        headers: { ...headers, 'anthropic-version': '2023-06-01', 'x-api-key': config.api_key },
+        timeout: 15000,
+      });
+      return res.data.content?.[0]?.text || null;
+    } catch (e) {
+      const msg = e.response?.data?.error?.message || e.message;
+      logger.warn('Anthropic API error, usando mock:', msg);
+      return llamarMock(prompt);
+    }
+  }
+
+  // Groq (Llama gratis — API compatible con OpenAI)
+  if (config.tipo === 'groq') {
+    try {
+      const res = await axios.post('https://api.groq.com/openai/v1/chat/completions', {
+        model: modelo,
+        temperature: temperatura,
+        max_tokens: 1024,
+        messages: [{ role: 'user', content: prompt }],
+      }, { headers, timeout: 15000 });
+      return res.data.choices?.[0]?.message?.content?.trim() || null;
+    } catch (e) {
+      const msg = e.response?.data?.error?.message || e.message;
+      logger.warn('Groq API error, usando mock:', msg);
+      return llamarMock(prompt);
+    }
   }
 
   // OpenAI compatible
-  const res = await axios.post('https://api.openai.com/v1/chat/completions', {
-    model: modelo,
-    temperature: temperatura,
-    max_tokens: 500,
-    messages: [{ role: 'user', content: prompt }],
-  }, { headers, timeout: 15000 });
-
-  return res.data.choices?.[0]?.message?.content?.trim() || null;
+  try {
+    const res = await axios.post('https://api.openai.com/v1/chat/completions', {
+      model: modelo,
+      temperature: temperatura,
+      max_tokens: 500,
+      messages: [{ role: 'user', content: prompt }],
+    }, { headers, timeout: 15000 });
+    return res.data.choices?.[0]?.message?.content?.trim() || null;
+  } catch (e) {
+    const msg = e.response?.data?.error?.message || e.message;
+    logger.warn('OpenAI API error, usando mock:', msg);
+    return llamarMock(prompt);
+  }
 }
 
 module.exports = { detectarIntencion, traducir, generarRespuesta };

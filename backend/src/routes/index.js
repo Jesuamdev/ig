@@ -21,6 +21,8 @@ router.post('/auth/login',              authCtrl.loginAgente);
 router.post('/auth/cliente/login',      authCtrl.loginCliente);
 router.get ('/auth/perfil',             authenticate, authCtrl.perfil);
 router.put ('/auth/cambiar-password',   authenticate, authCtrl.cambiarPassword);
+router.post('/auth/forgot-password',    authCtrl.forgotPassword);
+router.post('/auth/reset-password',     authCtrl.resetPassword);
 
 // ── WHATSAPP WEBHOOK (público) ─────────────────────────────────────────────────
 router.get ('/whatsapp/webhook',  webhookCtrl.verificarWebhook);
@@ -490,12 +492,12 @@ router.get('/reportes/chatbots',      authenticate, soloAgente, reportesCtrl.rep
 router.get('/reportes/exportar',      authenticate, soloAgente, reportesCtrl.exportarConversaciones);
 
 // ── WEBHOOKS SALIENTES ─────────────────────────────────────────────────────────
-router.get   ('/webhooks',           authenticate, soloAdmin, integCtrl.listarWebhooks);
-router.post  ('/webhooks',           authenticate, soloAdmin, integCtrl.crearWebhook);
-router.put   ('/webhooks/:id',       authenticate, soloAdmin, integCtrl.actualizarWebhook);
-router.delete('/webhooks/:id',       authenticate, soloAdmin, integCtrl.eliminarWebhook);
-router.get   ('/webhooks/:id/logs',  authenticate, soloAdmin, integCtrl.logsWebhook);
-router.post  ('/webhooks/:id/probar',authenticate, soloAdmin, integCtrl.probarWebhook);
+router.get   ('/webhooks-salientes',           authenticate, soloAdmin, integCtrl.listarWebhooks);
+router.post  ('/webhooks-salientes',           authenticate, soloAdmin, integCtrl.crearWebhook);
+router.put   ('/webhooks-salientes/:id',       authenticate, soloAdmin, integCtrl.actualizarWebhook);
+router.delete('/webhooks-salientes/:id',       authenticate, soloAdmin, integCtrl.eliminarWebhook);
+router.get   ('/webhooks-salientes/:id/logs',  authenticate, soloAdmin, integCtrl.logsWebhook);
+router.post  ('/webhooks-salientes/:id/probar',authenticate, soloAdmin, integCtrl.probarWebhook);
 
 // ── INTEGRACIONES EXTERNAS ─────────────────────────────────────────────────────
 router.get ('/integraciones',         authenticate, soloAdmin, integCtrl.listarIntegraciones);

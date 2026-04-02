@@ -52,6 +52,11 @@ app.use('/uploads', express.static(path.resolve(process.env.UPLOADS_PATH || './u
 // ── Widget de WhatsApp (público) ──────────────────────────────────────────────
 app.use('/widget', express.static(path.resolve(__dirname, '../../frontend/widget')));
 
+// ── Panel de agentes y portal de clientes ─────────────────────────────────────
+app.use(express.static(path.resolve(__dirname, '../../frontend')));
+app.get('/panel', (req, res) => res.redirect('/panel/index.html'));
+app.get('/portal', (req, res) => res.redirect('/portal/index.html'));
+
 // ── Inyectar io en las rutas ──────────────────────────────────────────────────
 app.set('io', io);
 
@@ -104,7 +109,7 @@ server.listen(PORT, () => {
   logger.info(`🤖 Chatbots API:    /api/chatbots`);
   logger.info(`📢 Campañas API:    /api/campanas`);
   logger.info(`📊 Reportes API:    /api/reportes`);
-  logger.info(`🔗 Webhooks API:    /api/webhooks`);
+  logger.info(`🔗 Webhooks API:    /api/webhooks-salientes`);
   logger.info(`⚙️  Widget JS:       /widget/widget.js`);
   iniciarCron();
 });

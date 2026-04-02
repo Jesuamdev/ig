@@ -116,4 +116,74 @@ async function cambiarPassword(req, res) {
   }
 }
 
-module.exports = { loginAgente, loginCliente, perfil, cambiarPassword };
+// POST /api/auth/forgot-password
+async function forgotPassword(req, res) {
+  try {
+    const { email } = req.body;
+    if (!email) return res.status(400).json({ message: 'Email requerido' });
+
+    // Buscar en agentes primero, luego en clientes
+    let user = null;
+    let tabla = null;
+
+    const { rows: agentes } = await query(`SELECT id, nombre, email FROM agentes WHERE email=$1 AND estado='activo'`, [email.toLowerCase().trim()]);
+    if (agentes.length) { user = agentes[0]; tabla = 'agentes'; }
+
+    if (!user) {
+      const { rows: clientes } = await query(`SELECT id, nombre, email FROM clientes WHERE email=$1 AND estado='activo'`, [email.toLowerCase().trim()]);
+      if (clientes.length) { user = clientes[0]; tabla = 'clientes'; }
+    }
+
+    // Siempre responder OK (no revelar si existe el email)
+    if (!user) return res.json({ message: 'Si el email existe, recibirás un código de recuperación' });
+
+    // Generar código de 6 dígitos
+    const codigo = Math.floor(100000 + Math.random() * 900000).toString();
+    const expira = new Date(Date.now() + 30 * 60 * 1000); // 30 minutos
+
+    await query(`
+      INSERT INTO password_resets (email, tabla, codigo, expira_at)
+      VALUES ($1, $2, $3, $4)
+      ON CONFLICT (email) DO UPDATE SET codigo=$3, expira_at=$4, usado=FALSE, created_at=NOW()
+    `, [user.email, tabla, codigo, expira]);
+
+    logger.info(`🔑 Código de recuperación para ${user.email}: ${codigo}`);
+    // En producción aquí se enviaría el email. Por ahora lo logueamos.
+    res.json({ message: 'Si el email existe, recibirás un código de recuperación', __dev_codigo: process.env.NODE_ENV !== 'production' ? codigo : undefined });
+  } catch (err) {
+    logger.error('forgotPassword:', err.message);
+    res.status(500).json({ message: 'Error del servidor' });
+  }
+}
+
+// POST /api/auth/reset-password
+async function resetPassword(req, res) {
+  try {
+    const { email, codigo, password_nuevo } = req.body;
+    if (!email || !codigo || !password_nuevo)
+      return res.status(400).json({ message: 'Email, código y nueva contraseña son requeridos' });
+    if (password_nuevo.length < 6)
+      return res.status(400).json({ message: 'La contraseña debe tener al menos 6 caracteres' });
+
+    const { rows } = await query(`
+      SELECT * FROM password_resets
+      WHERE email=$1 AND codigo=$2 AND usado=FALSE AND expira_at > NOW()
+    `, [email.toLowerCase().trim(), codigo]);
+
+    if (!rows.length)
+      return res.status(400).json({ message: 'Código inválido o expirado' });
+
+    const reset = rows[0];
+    const hash = await bcrypt.hash(password_nuevo, 12);
+    await query(`UPDATE ${reset.tabla} SET password=$1 WHERE email=$2`, [hash, reset.email]);
+    await query(`UPDATE password_resets SET usado=TRUE WHERE email=$1`, [reset.email]);
+
+    logger.info(`🔑 Contraseña restablecida para ${reset.email}`);
+    res.json({ message: 'Contraseña restablecida exitosamente' });
+  } catch (err) {
+    logger.error('resetPassword:', err.message);
+    res.status(500).json({ message: 'Error del servidor' });
+  }
+}
+
+module.exports = { loginAgente, loginCliente, perfil, cambiarPassword, forgotPassword, resetPassword };
