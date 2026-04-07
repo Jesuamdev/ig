@@ -92,6 +92,7 @@ async function crearCita(req, res) {
     `, [agente_id, fecha_inicio, fecha_fin]);
 
     if (overlap.rows.length) {
+      logger.warn(`[CITAS] Solapamiento detectado: agente=${agente_id} fecha=${fecha_inicio}–${fecha_fin} conflicto_con=${overlap.rows[0].id}`);
       return res.status(409).json({
         message: 'El agente ya tiene una cita en ese horario. Por favor elige otro horario o selecciona un agente diferente.',
         code: 'HORARIO_OCUPADO'
@@ -170,6 +171,7 @@ async function actualizarCita(req, res) {
               AND tsrange(fecha_inicio, fecha_fin) && tsrange($3::timestamp, $4::timestamp)
           `, [id, ag, ini, fin]);
           if (overlap.rows.length) {
+            logger.warn(`[CITAS] Solapamiento en edición: cita=${id} agente=${ag} fecha=${ini}–${fin} conflicto_con=${overlap.rows[0].id}`);
             return res.status(409).json({
               message: 'El agente ya tiene una cita en ese horario. Por favor elige otro horario o selecciona un agente diferente.',
               code: 'HORARIO_OCUPADO'
