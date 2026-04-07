@@ -502,7 +502,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);height:100vh
 .file-card-footer{display:flex;align-items:center;justify-content:space-between;margin-top:8px;padding-top:6px;border-top:1px solid var(--border)}
 
 /* ── DASHBOARD ────────────────────────────────────────────────────────────── */
-.stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:24px}
+.stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px;margin-bottom:24px}
 .stat-card{
   background:var(--bg-white);border:1px solid var(--border);
   border-radius:var(--r-lg);padding:18px 20px;
@@ -3175,17 +3175,21 @@ async function cargarDashboard() {
     <div class="stat-card"><div class="stat-val" style="color:var(--green)">${d.clientes?.total||0}</div><div class="stat-lbl">Clientes activos</div><div class="stat-change stat-up">+${d.clientes?.nuevos_mes||0} este mes</div></div>
     <div class="stat-card"><div class="stat-val" style="color:#2563eb">${d.servicios_activos||0}</div><div class="stat-lbl">Servicios activos</div><div class="stat-change stat-up">En proceso</div></div>
     <div class="stat-card"><div class="stat-val" style="color:#d97706">${d.pagos?.pendientes||0}</div><div class="stat-lbl">Pagos pendientes</div><div class="stat-change">${fmt(d.pagos?.total_pendiente)} por cobrar</div></div>
-    <div class="stat-card"><div class="stat-val" style="color:var(--purple)">${d.conversaciones_abiertas||0}</div><div class="stat-lbl">Conversaciones abiertas</div><div class="stat-change stat-up">${d.mensajes_hoy||0} mensajes hoy</div></div>`;
+    <div class="stat-card"><div class="stat-val" style="color:var(--purple)">${d.conversaciones_abiertas||0}</div><div class="stat-lbl">Conversaciones abiertas</div><div class="stat-change stat-up">${d.mensajes_hoy||0} mensajes hoy</div></div>
+    <div class="stat-card" onclick="showView('agenda')" style="cursor:pointer"><div class="stat-val" style="color:#7C5CFC">${d.citas_proximas||0}</div><div class="stat-lbl">Citas próximas hoy</div><div class="stat-change stat-up">${d.citas_hoy||0} cita${d.citas_hoy!==1?'s':''} programada${d.citas_hoy!==1?'s':''}</div></div>`;
 
-  // Barras simples
-  const dias=['Lun','Mar','Mié','Jue','Vie','Sáb','Dom'];
-  const vals=[65,82,48,74,90,35,20];
-  const max=Math.max(...vals);
-  document.getElementById('dash-bars').innerHTML=dias.map((d,i)=>`
-    <div class="bar-wrap">
-      <div class="bar" style="height:${Math.round(vals[i]/max*90)}px"></div>
-      <div class="bar-label">${d}</div>
-    </div>`).join('');
+  // Barras con datos reales de mensajes (últimos 7 días)
+  const m7 = d.mensajes_7dias || [];
+  const diasLbl = ['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
+  const vals7 = m7.map(x => x.total);
+  const max7 = Math.max(...vals7, 1);
+  document.getElementById('dash-bars').innerHTML = m7.map(x => {
+    const lbl = diasLbl[new Date(x.fecha).getDay()];
+    return `<div class="bar-wrap">
+      <div class="bar" style="height:${Math.round(x.total/max7*90)}px" title="${x.total} mensajes"></div>
+      <div class="bar-label">${lbl}</div>
+    </div>`;
+  }).join('');
 
   // Donut estado conversaciones
   const estados=[{lbl:'Abiertas',col:'#25D366',val:d.conversaciones_abiertas||0},{lbl:'En proceso',col:'#3b82f6',val:d.servicios_activos||0},{lbl:'Resueltas',col:'#8b5cf6',val:Math.round((d.clientes?.total||0)*0.3)},{lbl:'Cerradas',col:'#9ca3af',val:Math.round((d.clientes?.total||0)*0.2)}];

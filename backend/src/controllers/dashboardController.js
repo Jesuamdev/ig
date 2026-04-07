@@ -7,7 +7,7 @@ async function resumen(req, res) {
     const ini30  = new Date(hoy); ini30.setDate(ini30.getDate() + 30);
     const mesIni = new Date(hoy.getFullYear(), hoy.getMonth(), 1);
 
-    const [clientes, servicios, pagos, archivos, conversaciones, sinClasificar, mensajesHoy, proximosPagos] =
+    const [clientes, servicios, pagos, archivos, conversaciones, sinClasificar, mensajesHoy, proximosPagos, citasHoy, mensajes7dias] =
       await Promise.all([
         query(`SELECT COUNT(*) AS total, COUNT(*) FILTER (WHERE created_at >= $1) AS nuevos_mes FROM clientes WHERE estado='activo'`, [mesIni]),
         query(`SELECT COUNT(*) AS activos FROM servicios WHERE estado IN ('pendiente','en_proceso','esperando_cliente')`),
@@ -20,7 +20,20 @@ async function resumen(req, res) {
                FROM pagos p JOIN clientes c ON p.cliente_id=c.id LEFT JOIN servicios s ON p.servicio_id=s.id
                WHERE p.estado IN ('pendiente','enviado') AND p.fecha_vencimiento <= $1
                ORDER BY p.fecha_vencimiento ASC LIMIT 5`, [ini30]),
+        query(`SELECT COUNT(*) AS hoy, COUNT(*) FILTER (WHERE fecha_inicio >= NOW()) AS proximas
+               FROM citas WHERE fecha_inicio::date = CURRENT_DATE AND estado NOT IN ('cancelada')`),
+        query(`SELECT DATE_TRUNC('day', created_at) AS dia, COUNT(*) AS total
+               FROM mensajes WHERE created_at >= NOW() - INTERVAL '7 days' AND direccion='entrante'
+               GROUP BY dia ORDER BY dia ASC`),
       ]);
+
+    // Mensajes por día últimos 7 días (rellenar días sin datos con 0)
+    const diasSemana = [];
+    for (let i = 6; i >= 0; i--) {
+      const d = new Date(hoy); d.setDate(d.getDate() - i); d.setHours(0,0,0,0);
+      const row = mensajes7dias.rows.find(r => new Date(r.dia).toDateString() === d.toDateString());
+      diasSemana.push({ fecha: d, total: row ? parseInt(row.total) : 0 });
+    }
 
     res.json({
       clientes: {
@@ -36,7 +49,10 @@ async function resumen(req, res) {
       archivos_sin_clasificar: parseInt(sinClasificar.rows[0].total),
       conversaciones_abiertas: parseInt(conversaciones.rows[0].abiertas),
       mensajes_hoy:         parseInt(mensajesHoy.rows[0].total),
+      citas_hoy:            parseInt(citasHoy.rows[0].hoy),
+      citas_proximas:       parseInt(citasHoy.rows[0].proximas),
       proximos_pagos:       proximosPagos.rows,
+      mensajes_7dias:       diasSemana,
     });
   } catch (err) {
     res.status(500).json({ message: err.message });
