@@ -1571,6 +1571,7 @@ tr:hover td{background:#FAFAFE}
     <div class="cp-tab active" onclick="cpTab('info',this)">Info</div>
     <div class="cp-tab" onclick="cpTab('servicios',this)">Servicios</div>
     <div class="cp-tab" onclick="cpTab('pagos',this)">Pagos</div>
+    <div class="cp-tab" onclick="cpTab('citas',this)">Citas</div>
     <div class="cp-tab" onclick="cpTab('archivos',this)">Archivos</div>
     <div class="cp-tab" onclick="cpTab('notas',this)">Notas</div>
     <div class="cp-tab" onclick="cpTab('actividad',this)">Historial</div>
@@ -2436,6 +2437,43 @@ async function renderCpBody() {
           }).join('')}
         </div>` : '<div style="padding:16px;text-align:center;color:var(--text3);font-size:13px">Sin actividad registrada</div>'}
       </div>`;
+  }
+
+  else if (_cpTab==='citas') {
+    body.innerHTML = `<div style="padding:20px;text-align:center;color:var(--text3);font-size:13px">Cargando citas...</div>`;
+    // Rango amplio: 60 días pasados + 365 futuros
+    const ini = new Date(); ini.setDate(ini.getDate()-60);
+    const fin = new Date(); fin.setDate(fin.getDate()+365);
+    api('GET', `/citas?cliente_id=${d.id}&fecha_inicio=${ini.toISOString()}&fecha_fin=${fin.toISOString()}`).then(citas => {
+      const ahora = new Date();
+      const proximas = (citas||[]).filter(c=>new Date(c.fecha_inicio)>=ahora&&c.estado!=='cancelada');
+      const pasadas  = (citas||[]).filter(c=>new Date(c.fecha_inicio)<ahora||c.estado==='cancelada');
+      const fmtCita = ct => {
+        const ini2 = new Date(ct.fecha_inicio);
+        const fin2 = new Date(ct.fecha_fin);
+        const estados = {pendiente:'tag-amber',confirmada:'tag-green',cancelada:'tag-red',completada:'tag-blue',no_asistio:'tag-gray'};
+        return `<div class="service-item" style="cursor:pointer" onclick="agendaVerCita('${ct.id}');showView('agenda')">
+          <div style="font-size:22px">📅</div>
+          <div class="service-item-info">
+            <div class="service-item-name">${ct.titulo||ct.servicio_nombre||'Cita'}</div>
+            <div class="service-item-type">${ini2.toLocaleDateString('es',{day:'numeric',month:'short',year:'numeric'})} · ${ini2.toLocaleTimeString('es',{hour:'2-digit',minute:'2-digit'})}–${fin2.toLocaleTimeString('es',{hour:'2-digit',minute:'2-digit'})}${ct.agente_nombre?' · '+ct.agente_nombre:''}</div>
+          </div>
+          <span class="tag ${estados[ct.estado]||'tag-gray'}">${ct.estado?.replace(/_/g,' ')}</span>
+        </div>`;
+      };
+      body.innerHTML = `
+        <div class="cp-section">
+          <div class="cp-section-title">Próximas citas (${proximas.length})
+            <button class="btn btn-primary btn-sm" onclick="crearCitaParaCliente('${d.id}')">+ Nueva cita</button>
+          </div>
+          ${proximas.length ? proximas.map(fmtCita).join('') : '<div style="padding:16px;color:var(--text3);font-size:13px">Sin citas próximas</div>'}
+        </div>
+        ${pasadas.length ? `
+        <div class="cp-section">
+          <div class="cp-section-title" style="color:var(--text3)">Historial de citas (${pasadas.length})</div>
+          ${pasadas.map(fmtCita).join('')}
+        </div>` : ''}`;
+    });
   }
 
   else if (_cpTab==='whatsapp') {
@@ -5467,6 +5505,19 @@ async function agendaVerCita(id) {
 
 function cerrarModalCita() {
   document.getElementById('modal-cita').style.display = 'none';
+}
+
+async function crearCitaParaCliente(clienteId) {
+  // Asegurar que la agenda esté inicializada
+  if (!AG._initDone) await agendaInit();
+  agendaAbrirModalNuevaCita();
+  // Pre-seleccionar el cliente en el modal
+  setTimeout(() => {
+    const sel = document.getElementById('mc-cliente');
+    if (sel) sel.value = clienteId;
+  }, 100);
+  // Navegar a agenda
+  showView('agenda');
 }
 
 function mcSelColor(el) {

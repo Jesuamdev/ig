@@ -7,7 +7,7 @@ const logger = require('../utils/logger');
 
 // ── GET /api/citas — Listar citas en rango ───────────────────────────────────
 async function listarCitas(req, res) {
-  const { fecha_inicio, fecha_fin, agente_id } = req.query;
+  const { fecha_inicio, fecha_fin, agente_id, cliente_id } = req.query;
   try {
     const conds = [];
     const vals  = [];
@@ -16,6 +16,7 @@ async function listarCitas(req, res) {
     if (fecha_inicio) { conds.push(`c.fecha_inicio >= $${i++}`); vals.push(fecha_inicio); }
     if (fecha_fin)    { conds.push(`c.fecha_inicio <= $${i++}`); vals.push(fecha_fin); }
     if (agente_id)    { conds.push(`c.agente_id = $${i++}`);     vals.push(agente_id); }
+    if (cliente_id)   { conds.push(`c.cliente_id = $${i++}`);    vals.push(cliente_id); }
 
     const where = conds.length ? `WHERE ${conds.join(' AND ')}` : '';
 
