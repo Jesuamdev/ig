@@ -18,9 +18,11 @@ async function iniciarLlamada(req, res) {
 
     // Registrar en actividad si hay conversación
     if (conversacion_id) {
-      const { rows: conv } = await query(
-        `SELECT cliente_id FROM conversaciones WHERE id=$1`, [conversacion_id]
-      );
+      const { rows: conv } = await query(`
+        SELECT ct.cliente_id FROM conversaciones c
+        JOIN contactos ct ON ct.id = c.contacto_id
+        WHERE c.id=$1
+      `, [conversacion_id]);
       if (conv.length && conv[0].cliente_id) {
         await query(
           `INSERT INTO actividad (agente_id, cliente_id, accion, detalles) VALUES ($1,$2,'llamada.iniciada',$3)`,
@@ -70,9 +72,11 @@ async function actualizarLlamada(req, res) {
     // Registrar finalización en actividad
     const ll = rows[0];
     if (estado === 'finalizada' && ll.conversacion_id) {
-      const { rows: conv } = await query(
-        `SELECT cliente_id FROM conversaciones WHERE id=$1`, [ll.conversacion_id]
-      );
+      const { rows: conv } = await query(`
+        SELECT ct.cliente_id FROM conversaciones c
+        JOIN contactos ct ON ct.id = c.contacto_id
+        WHERE c.id=$1
+      `, [ll.conversacion_id]);
       if (conv.length && conv[0].cliente_id) {
         await query(
           `INSERT INTO actividad (agente_id, cliente_id, accion, detalles) VALUES ($1,$2,'llamada.finalizada',$3)`,
