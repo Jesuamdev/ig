@@ -28,6 +28,9 @@ const PORT = process.env.PORT || 3000;
   if (!fs.existsSync(d)) fs.mkdirSync(d, { recursive: true });
 });
 
+// ── Trust proxy (Railway / Render / Heroku están detrás de reverse proxy) ────
+app.set('trust proxy', 1);
+
 // ── Seguridad ─────────────────────────────────────────────────────────────────
 app.use(helmet({ crossOriginResourcePolicy: { policy: 'cross-origin' } }));
 app.use(cors({
@@ -226,6 +229,18 @@ async function runMigrations() {
       FROM agentes a
       CROSS JOIN (VALUES (1),(2),(3),(4),(5)) AS d(dia)
       ON CONFLICT (agente_id, dia_semana) DO NOTHING
+    `);
+    // Tabla integraciones (crear si no existe)
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS integraciones (
+        id             UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        tipo           VARCHAR(50) NOT NULL,
+        nombre         VARCHAR(100),
+        configuracion  JSONB DEFAULT '{}',
+        activa         BOOLEAN DEFAULT false,
+        created_at     TIMESTAMP DEFAULT NOW(),
+        updated_at     TIMESTAMP DEFAULT NOW()
+      );
     `);
     // Amelia integration
     await pool.query(`
