@@ -12,7 +12,9 @@
       "Bash(ls \"C:/Users/Admin/Downloads/ig/\"*.example)",
       "Bash(pg_isready)",
       "Bash(psql -U postgres -c \"SELECT version\\(\\);\")",
-      "Bash(powershell:*)"
+      "Bash(powershell:*)",
+      "Bash(curl:*)",
+      "Bash(npm start:*)"
     ]
   }
 }

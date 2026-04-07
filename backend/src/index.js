@@ -13,6 +13,7 @@ const fs        = require('fs');
 const logger    = require('./utils/logger');
 const routes    = require('./routes/index');
 const { iniciarCron } = require('./services/cronService');
+const { pool }  = require('./models/db');
 
 const app    = express();
 const server = http.createServer(app);
@@ -137,8 +138,41 @@ io.on('connection', (socket) => {
   socket.on('disconnect', () => logger.info(`Socket desconectado: ${socket.userId}`));
 });
 
+// ── Migraciones automáticas ───────────────────────────────────────────────────
+async function runMigrations() {
+  try {
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS llamadas (
+        id               UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        conversacion_id  UUID REFERENCES conversaciones(id) ON DELETE SET NULL,
+        contacto_id      UUID REFERENCES contactos(id)      ON DELETE SET NULL,
+        agente_id        UUID REFERENCES agentes(id)         ON DELETE SET NULL,
+        tipo             VARCHAR(20)  DEFAULT 'saliente'
+                           CHECK (tipo IN ('entrante','saliente')),
+        estado           VARCHAR(30)  DEFAULT 'iniciada'
+                           CHECK (estado IN ('iniciada','marcando','respondida','no_respondida','finalizada','fallida','cancelada','ocupado')),
+        duracion_segundos INTEGER     DEFAULT 0,
+        numero_destino   VARCHAR(30),
+        notas            TEXT,
+        initiated_at     TIMESTAMP    DEFAULT NOW(),
+        answered_at      TIMESTAMP,
+        ended_at         TIMESTAMP,
+        created_at       TIMESTAMP    DEFAULT NOW()
+      );
+      CREATE INDEX IF NOT EXISTS idx_llamadas_conversacion ON llamadas(conversacion_id);
+      CREATE INDEX IF NOT EXISTS idx_llamadas_contacto     ON llamadas(contacto_id);
+      CREATE INDEX IF NOT EXISTS idx_llamadas_agente       ON llamadas(agente_id);
+      CREATE INDEX IF NOT EXISTS idx_llamadas_created      ON llamadas(created_at DESC);
+    `);
+    logger.info('✅ Migraciones aplicadas');
+  } catch (err) {
+    logger.error('❌ Error en migración:', err.message);
+  }
+}
+
 // ── Arrancar ──────────────────────────────────────────────────────────────────
-server.listen(PORT, () => {
+server.listen(PORT, async () => {
+  await runMigrations();
   logger.info(`🚀 CorpEase v2 corriendo en puerto ${PORT} [${process.env.NODE_ENV || 'development'}]`);
   logger.info(`📱 WhatsApp webhook: /api/whatsapp/webhook`);
   logger.info(`🖥️  Panel agentes:   ${process.env.FRONTEND_URL || 'http://localhost:5500'}`);

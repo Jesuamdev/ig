@@ -2539,3 +2539,13 @@
 [2026-04-06 20:32:46] INFO: ::1 - - [07/Apr/2026:01:32:46 +0000] "GET /api/llamadas/stats HTTP/1.1" 200 107 "-" "Mozilla/5.0 (Windows NT; Windows NT 10.0; es-VE) WindowsPowerShell/5.1.19041.6456"
 [2026-04-06 20:32:47] INFO: Llamada iniciada: c320acb6-b443-4645-86a6-109dedd0f656 → +1234567890 por agente 435f7d2d-f9cc-4046-84e8-ef20c98adf27
 [2026-04-06 20:32:47] INFO: ::1 - - [07/Apr/2026:01:32:47 +0000] "POST /api/llamadas HTTP/1.1" 201 359 "-" "Mozilla/5.0 (Windows NT; Windows NT 10.0; es-VE) WindowsPowerShell/5.1.19041.6456"
+[2026-04-06 20:39:05] INFO: 🚀 CorpEase v2 corriendo en puerto 3000 [development]
+[2026-04-06 20:39:05] INFO: 📱 WhatsApp webhook: /api/whatsapp/webhook
+[2026-04-06 20:39:05] INFO: 🖥️  Panel agentes:   http://localhost:3000
+[2026-04-06 20:39:05] INFO: 🤖 Chatbots API:    /api/chatbots
+[2026-04-06 20:39:05] INFO: 📢 Campañas API:    /api/campanas
+[2026-04-06 20:39:05] INFO: 📊 Reportes API:    /api/reportes
+[2026-04-06 20:39:05] INFO: 🔗 Webhooks API:    /api/webhooks-salientes
+[2026-04-06 20:39:05] INFO: ⚙️  Widget JS:       /widget/widget.js
+[2026-04-06 20:39:05] INFO: ✅ Crons activos: recordatorios (8AM), secuencias (c/15min), campañas (c/5min)
+[2026-04-06 20:45:01] INFO: ⏰ Procesando 0 suscripciones de secuencia
