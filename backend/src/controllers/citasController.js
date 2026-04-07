@@ -1,7 +1,8 @@
 // src/controllers/citasController.js
 const { query, withTransaction } = require('../models/db');
-const logger = require('../utils/logger');
+const logger    = require('../utils/logger');
 const waService = require('../services/whatsappService');
+const amelia    = require('../services/ameliaService');
 
 // Timezone Miami = America/New_York (ET)
 // Todos los timestamps se almacenan en UTC, el frontend muestra en ET
@@ -133,6 +134,10 @@ async function crearCita(req, res) {
       }
     }
 
+    // Sync a Amelia (no bloqueante)
+    amelia.crearEnAmelia({ ...rows[0], cliente_nombre: null, cliente_apellido: null, cliente_email: null, cliente_telefono: null })
+      .catch(e => logger.warn(`Amelia sync create: ${e.message}`));
+
     logger.info(`Cita creada: ${rows[0].id} → ${fecha_inicio}`);
     res.status(201).json(rows[0]);
   } catch (err) {
@@ -209,6 +214,13 @@ async function actualizarCita(req, res) {
       ).catch(() => {});
     }
 
+    // Sync a Amelia (no bloqueante)
+    if (rows[0].amelia_appointment_id && estado === 'cancelada') {
+      amelia.cancelarEnAmelia(rows[0].amelia_appointment_id).catch(() => {});
+    } else if (rows[0].amelia_appointment_id) {
+      amelia.actualizarEnAmelia(rows[0]).catch(() => {});
+    }
+
     res.json(rows[0]);
   } catch (err) {
     logger.error('actualizarCita:', err.message);
@@ -219,8 +231,12 @@ async function actualizarCita(req, res) {
 // ── DELETE /api/citas/:id ─────────────────────────────────────────────────────
 async function eliminarCita(req, res) {
   try {
-    const { rows } = await query(`DELETE FROM citas WHERE id=$1 RETURNING id`, [req.params.id]);
+    const { rows } = await query(`DELETE FROM citas WHERE id=$1 RETURNING id, amelia_appointment_id`, [req.params.id]);
     if (!rows.length) return res.status(404).json({ message: 'Cita no encontrada' });
+    // Cancelar en Amelia (no bloqueante)
+    if (rows[0].amelia_appointment_id) {
+      amelia.cancelarEnAmelia(rows[0].amelia_appointment_id).catch(() => {});
+    }
     res.json({ success: true });
   } catch (err) {
     logger.error('eliminarCita:', err.message);

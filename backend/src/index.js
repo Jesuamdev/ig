@@ -227,6 +227,27 @@ async function runMigrations() {
       CROSS JOIN (VALUES (1),(2),(3),(4),(5)) AS d(dia)
       ON CONFLICT (agente_id, dia_semana) DO NOTHING
     `);
+    // Amelia integration
+    await pool.query(`
+      ALTER TABLE citas ADD COLUMN IF NOT EXISTS amelia_appointment_id INTEGER;
+      CREATE UNIQUE INDEX IF NOT EXISTS idx_citas_amelia ON citas(amelia_appointment_id) WHERE amelia_appointment_id IS NOT NULL;
+    `);
+    // Expandir CHECK constraint de integraciones para incluir 'amelia'
+    await pool.query(`
+      ALTER TABLE integraciones DROP CONSTRAINT IF EXISTS integraciones_tipo_check;
+      ALTER TABLE integraciones ADD CONSTRAINT integraciones_tipo_check
+        CHECK (tipo IN ('google_sheets','shopify','woocommerce','zapier','make','n8n','stripe','openai','amelia'));
+    `).catch(() => {}); // ignorar si ya existe o no aplica
+    // Unique en tipo para upsert
+    await pool.query(`
+      CREATE UNIQUE INDEX IF NOT EXISTS idx_integraciones_tipo ON integraciones(tipo);
+    `).catch(() => {});
+    // Insertar config inicial de Amelia si no existe
+    await pool.query(`
+      INSERT INTO integraciones (tipo, nombre, configuracion, activa)
+      VALUES ('amelia', 'Amelia Booking', '{"wp_url":"","api_key":"","webhook_secret":"","employee_map":{},"service_map":{}}', false)
+      ON CONFLICT (tipo) DO NOTHING;
+    `).catch(() => {});
     logger.info('✅ Migraciones aplicadas');
   } catch (err) {
     logger.error('❌ Error en migración:', err.message);

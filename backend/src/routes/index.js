@@ -14,6 +14,7 @@ const { conv }     = require('../controllers/dashboardController');
 const webhookCtrl  = require('../controllers/webhookController');
 const llamadasCtrl = require('../controllers/llamadasController');
 const { procesarRecordatorios, procesarRecordatoriosCitas } = require('../services/cronService');
+const ameliaService = require('../services/ameliaService');
 const { query }    = require('../models/db');
 const bcrypt       = require('bcryptjs');
 
@@ -767,6 +768,89 @@ router.post('/llamadas/notificar-contacto', authenticate, soloAgente, async (req
     const mensaje = `📞 Hola, soy *${agente_nombre || 'tu agente'}* de IG Accounting Services.\n\nTe estoy contactando para hablar contigo. Por favor responde este mensaje cuando estés disponible o llámame de vuelta.`;
     await waService.enviarTexto(telefono.replace(/\D/g,''), mensaje, conversacion_id || null, req.user.id);
     res.json({ success: true });
+  } catch (err) { res.status(500).json({ message: err.message }); }
+});
+
+// ── AMELIA INTEGRATION ────────────────────────────────────────────────────────
+
+// Webhook público que Amelia llama (sin auth — verificar token secreto)
+router.post('/amelia/webhook', async (req, res) => {
+  try {
+    const secret = req.headers['x-amelia-secret'] || req.query.secret;
+    const { rows: cfg } = await query(
+      `SELECT configuracion FROM integraciones WHERE tipo='amelia' AND activa=true LIMIT 1`
+    );
+    if (!cfg.length) return res.status(400).json({ message: 'Amelia no configurada' });
+
+    const webhookSecret = cfg[0].configuracion?.webhook_secret;
+    if (webhookSecret && secret !== webhookSecret) {
+      return res.status(401).json({ message: 'Token inválido' });
+    }
+
+    const event   = req.headers['x-amelia-event'] || req.body.action || 'bookingAdded';
+    const payload = req.body;
+
+    const result = await ameliaService.procesarWebhook(event, payload, null);
+    res.json(result);
+  } catch (err) {
+    logger.error('Amelia webhook:', err.message);
+    res.status(500).json({ message: err.message });
+  }
+});
+
+// Rutas admin para Amelia
+router.get('/amelia/servicios', authenticate, soloAdmin, async (req, res) => {
+  try {
+    const data = await ameliaService.listarServiciosAmelia();
+    res.json(data);
+  } catch (err) { res.status(500).json({ message: err.message }); }
+});
+
+router.post('/amelia/sync-cita/:id', authenticate, soloAdmin, async (req, res) => {
+  try {
+    const { rows } = await query(`
+      SELECT c.*, cl.nombre AS cliente_nombre, cl.apellido AS cliente_apellido,
+             cl.email AS cliente_email, cl.telefono AS cliente_telefono
+      FROM citas c LEFT JOIN clientes cl ON cl.id=c.cliente_id
+      WHERE c.id=$1`, [req.params.id]);
+    if (!rows.length) return res.status(404).json({ message: 'Cita no encontrada' });
+    const cita = rows[0];
+    if (cita.amelia_appointment_id) {
+      await ameliaService.actualizarEnAmelia(cita);
+    } else {
+      await ameliaService.crearEnAmelia(cita);
+    }
+    res.json({ success: true });
+  } catch (err) { res.status(500).json({ message: err.message }); }
+});
+
+// Guardar/actualizar config de Amelia + mapeos
+router.post('/amelia/config', authenticate, soloAdmin, async (req, res) => {
+  try {
+    const { wp_url, api_key, webhook_secret, employee_map, service_map, activa } = req.body;
+    const config = { wp_url, api_key, webhook_secret: webhook_secret||'', employee_map: employee_map||{}, service_map: service_map||{} };
+    const { rows } = await query(
+      `INSERT INTO integraciones (tipo, nombre, configuracion, activa)
+       VALUES ('amelia','Amelia Booking',$1,$2)
+       ON CONFLICT (tipo) DO UPDATE SET configuracion=$1, activa=$2, updated_at=NOW()
+       RETURNING *`,
+      [JSON.stringify(config), activa !== false]
+    );
+    res.json({ success: true, integracion: rows[0] });
+  } catch (err) { res.status(500).json({ message: err.message }); }
+});
+
+router.get('/amelia/config', authenticate, soloAdmin, async (req, res) => {
+  try {
+    const { rows } = await query(
+      `SELECT id, activa, configuracion FROM integraciones WHERE tipo='amelia' LIMIT 1`
+    );
+    if (!rows.length) return res.json({ activa: false, configuracion: {} });
+    // Ocultar api_key parcialmente
+    const cfg = { ...rows[0].configuracion };
+    if (cfg.api_key) cfg.api_key_masked = cfg.api_key.substring(0,6) + '••••••';
+    delete cfg.api_key;
+    res.json({ id: rows[0].id, activa: rows[0].activa, configuracion: cfg });
   } catch (err) { res.status(500).json({ message: err.message }); }
 });
 

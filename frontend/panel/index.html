@@ -1625,6 +1625,10 @@ tr:hover td{background:#FAFAFE}
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
         Secuencias
       </button>
+      <button class="cfg-tab" onclick="cfgTab('amelia',this)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/></svg>
+        Amelia
+      </button>
     </div>
 
     <!-- Panels -->
@@ -1781,6 +1785,73 @@ tr:hover td{background:#FAFAFE}
           <button class="btn btn-primary btn-sm" onclick="crearSecuencia()">+ Nueva secuencia</button>
         </div>
         <div id="secuencias-lista" class="cfg-list"></div>
+      </div>
+
+      <!-- PANEL: Amelia Booking -->
+      <div class="cfg-panel" id="cfg-amelia">
+        <div class="cfg-panel-header">
+          <div class="cfg-panel-icon">📋</div>
+          <div>
+            <div class="cfg-panel-title">Amelia Booking</div>
+            <div class="cfg-panel-desc">Sincronización bidireccional de citas con Amelia (WordPress). El CRM es la fuente de verdad de disponibilidad.</div>
+          </div>
+          <div style="display:flex;gap:8px">
+            <button class="btn btn-ghost btn-sm" onclick="ameliaCargarMapeo()">↻ Cargar servicios</button>
+            <button class="btn btn-primary btn-sm" onclick="ameliaGuardarConfig()">Guardar</button>
+          </div>
+        </div>
+        <div style="padding:0 20px 20px">
+          <!-- Estado -->
+          <div id="amelia-status" style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:8px;padding:10px 14px;margin-bottom:16px;font-size:13px;color:#065F46;display:none"></div>
+          <div id="amelia-error" style="background:#fef2f2;border:1px solid #fecaca;border-radius:8px;padding:10px 14px;margin-bottom:16px;font-size:13px;color:#b91c1c;display:none"></div>
+
+          <!-- Activar -->
+          <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;padding:12px 16px;background:var(--bg);border-radius:8px;border:1px solid var(--border)">
+            <label class="toggle-label" style="font-weight:600;font-size:13px;flex:1">Integración activa</label>
+            <input type="checkbox" id="amelia-activa" style="width:18px;height:18px">
+          </div>
+
+          <!-- Credenciales -->
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:20px">
+            <div class="field">
+              <label>URL de WordPress</label>
+              <input id="amelia-wp-url" class="form-input" placeholder="https://tudominio.com" type="url">
+              <div style="font-size:11px;color:var(--text3);margin-top:4px">Sin barra al final</div>
+            </div>
+            <div class="field">
+              <label>API Key de Amelia</label>
+              <input id="amelia-api-key" class="form-input" placeholder="Amelia → Settings → Integrations → API" type="password">
+            </div>
+            <div class="field">
+              <label>Webhook secret (opcional)</label>
+              <input id="amelia-webhook-secret" class="form-input" placeholder="Token para verificar webhooks de Amelia">
+            </div>
+            <div class="field">
+              <label>URL Webhook para Amelia</label>
+              <div style="display:flex;gap:6px">
+                <input id="amelia-webhook-url" class="form-input" readonly style="background:var(--bg);font-size:12px;color:var(--text2);flex:1">
+                <button class="btn btn-ghost btn-sm" onclick="ameliaCopiarWebhook()" style="flex-shrink:0">Copiar</button>
+              </div>
+              <div style="font-size:11px;color:var(--text3);margin-top:4px">Pegar esta URL en Amelia → Notifications → Webhooks</div>
+            </div>
+          </div>
+
+          <!-- Mapeo empleados -->
+          <div style="margin-bottom:20px">
+            <div style="font-size:13px;font-weight:600;margin-bottom:8px">Mapeo: Empleados Amelia ↔ Agentes CRM</div>
+            <div id="amelia-employee-map" style="display:flex;flex-direction:column;gap:8px">
+              <div style="font-size:12px;color:var(--text3)">Haz clic en "Cargar servicios" para ver los empleados de Amelia</div>
+            </div>
+          </div>
+
+          <!-- Mapeo servicios -->
+          <div>
+            <div style="font-size:13px;font-weight:600;margin-bottom:8px">Mapeo: Servicios Amelia ↔ Servicios CRM</div>
+            <div id="amelia-service-map" style="display:flex;flex-direction:column;gap:8px">
+              <div style="font-size:12px;color:var(--text3)">Haz clic en "Cargar servicios" para ver los servicios de Amelia</div>
+            </div>
+          </div>
+        </div>
       </div>
 
     </div><!-- /cfg-body -->
@@ -4144,6 +4215,7 @@ function cfgTab(name, el) {
   document.querySelectorAll('.cfg-panel').forEach(p => p.classList.remove('active'));
   el.classList.add('active');
   document.getElementById('cfg-' + name)?.classList.add('active');
+  if (name === 'amelia') ameliaCargarConfig();
 }
 
 async function cargarConfiguracion() {
@@ -4151,6 +4223,7 @@ async function cargarConfiguracion() {
     cargarNumeros(), cargarReglas(), cargarWebhooks(), cargarWidgets(), cargarSecuencias(), cargarCfgAgentes(), cargarConfigIA()
   ]);
 }
+
 
 // ── Números WhatsApp ──────────────────────────────────────────────────────────
 let _numeros = [];
@@ -5792,6 +5865,140 @@ async function agendaEliminarBloqueo(id) {
     toast('Bloqueo eliminado');
     await agendaCargarConfigBloqueos();
   } catch (err) { toast('Error: '+err.message,'err'); }
+}
+
+// ══════════════════════════════════════════════════════════════════════
+// AMELIA INTEGRATION CONFIG
+// ══════════════════════════════════════════════════════════════════════
+let _ameliaEmployeeMap = {};
+let _ameliaServiceMap  = {};
+
+async function ameliaCargarConfig() {
+  // Set webhook URL
+  const webhookUrl = `${API}/api/amelia/webhook`;
+  const wuEl = document.getElementById('amelia-webhook-url');
+  if (wuEl) wuEl.value = webhookUrl;
+
+  try {
+    const res = await api('GET', '/amelia/config');
+    const cfg = res.configuracion || {};
+    document.getElementById('amelia-activa').checked       = res.activa || false;
+    document.getElementById('amelia-wp-url').value         = cfg.wp_url || '';
+    document.getElementById('amelia-api-key').value        = cfg.api_key_masked || '';
+    document.getElementById('amelia-webhook-secret').value = cfg.webhook_secret || '';
+    _ameliaEmployeeMap = cfg.employee_map || {};
+    _ameliaServiceMap  = cfg.service_map  || {};
+  } catch (e) {
+    // No config yet, defaults OK
+    _ameliaEmployeeMap = {};
+    _ameliaServiceMap  = {};
+  }
+  await ameliaCargarMapeo();
+}
+
+async function ameliaCargarMapeo() {
+  const empCont = document.getElementById('amelia-employee-map');
+  const svcCont = document.getElementById('amelia-service-map');
+  if (!empCont || !svcCont) return;
+
+  empCont.innerHTML = '<p style="color:var(--muted);font-size:12px">Cargando…</p>';
+  svcCont.innerHTML = '<p style="color:var(--muted);font-size:12px">Cargando…</p>';
+
+  try {
+    const [ameliaData, agentes, serviciosCRM] = await Promise.all([
+      api('GET', '/amelia/servicios').catch(() => ({ servicios: [], providers: [] })),
+      api('GET', '/agentes').catch(() => []),
+      api('GET', '/agenda/servicios').catch(() => []),
+    ]);
+
+    const { providers = [], servicios: ameliaSvcs = [] } = ameliaData;
+
+    // ── Employee mapping ──────────────────────────────────────────────
+    if (!providers.length && !agentes.length) {
+      empCont.innerHTML = '<p style="color:var(--muted);font-size:12px">Sin datos (verifica URL y API Key de Amelia)</p>';
+    } else {
+      empCont.innerHTML = '';
+      const agentesList = Array.isArray(agentes) ? agentes : (agentes.agentes || []);
+      agentesList.forEach(ag => {
+        const currentVal = _ameliaEmployeeMap[ag.id] || '';
+        const row = document.createElement('div');
+        row.style.cssText = 'display:flex;align-items:center;gap:8px;margin-bottom:8px';
+        row.innerHTML = `
+          <span style="flex:1;font-size:13px">${ag.nombre}</span>
+          <select class="amelia-emp-sel" data-crm="${ag.id}" style="flex:1;padding:6px 8px;border-radius:6px;border:1px solid var(--border);background:var(--bg-card);color:var(--text);font-size:13px">
+            <option value="">— sin mapeo —</option>
+            ${providers.map(p => `<option value="${p.id}" ${currentVal==p.id?'selected':''}>${p.firstName} ${p.lastName}</option>`).join('')}
+          </select>`;
+        empCont.appendChild(row);
+      });
+      if (!agentesList.length) empCont.innerHTML = '<p style="color:var(--muted);font-size:12px">Sin agentes en CRM</p>';
+    }
+
+    // ── Service mapping ───────────────────────────────────────────────
+    if (!ameliaSvcs.length && !serviciosCRM.length) {
+      svcCont.innerHTML = '<p style="color:var(--muted);font-size:12px">Sin servicios encontrados</p>';
+    } else {
+      svcCont.innerHTML = '';
+      const svcList = Array.isArray(serviciosCRM) ? serviciosCRM : (serviciosCRM.servicios || []);
+      svcList.forEach(sv => {
+        const currentVal = _ameliaServiceMap[sv.id] || '';
+        const row = document.createElement('div');
+        row.style.cssText = 'display:flex;align-items:center;gap:8px;margin-bottom:8px';
+        row.innerHTML = `
+          <span style="flex:1;font-size:13px">${sv.nombre}</span>
+          <select class="amelia-svc-sel" data-crm="${sv.id}" style="flex:1;padding:6px 8px;border-radius:6px;border:1px solid var(--border);background:var(--bg-card);color:var(--text);font-size:13px">
+            <option value="">— sin mapeo —</option>
+            ${ameliaSvcs.map(s => `<option value="${s.id}" ${currentVal==s.id?'selected':''}>${s.name || s.title || s.id}</option>`).join('')}
+          </select>`;
+        svcCont.appendChild(row);
+      });
+      if (!svcList.length) svcCont.innerHTML = '<p style="color:var(--muted);font-size:12px">Sin servicios en CRM</p>';
+    }
+  } catch (err) {
+    empCont.innerHTML = `<p style="color:var(--danger);font-size:12px">Error: ${err.message}</p>`;
+    svcCont.innerHTML = '';
+  }
+}
+
+async function ameliaGuardarConfig() {
+  // Collect employee map
+  const employeeMap = {};
+  document.querySelectorAll('.amelia-emp-sel').forEach(sel => {
+    if (sel.value) employeeMap[sel.dataset.crm] = sel.value;
+  });
+  // Collect service map
+  const serviceMap = {};
+  document.querySelectorAll('.amelia-svc-sel').forEach(sel => {
+    if (sel.value) serviceMap[sel.dataset.crm] = sel.value;
+  });
+
+  const apiKeyVal = document.getElementById('amelia-api-key').value.trim();
+  const payload = {
+    activa:         document.getElementById('amelia-activa').checked,
+    wp_url:         document.getElementById('amelia-wp-url').value.trim(),
+    webhook_secret: document.getElementById('amelia-webhook-secret').value.trim(),
+    employee_map:   employeeMap,
+    service_map:    serviceMap,
+  };
+  // Only send api_key if user typed a new one (not the masked placeholder)
+  if (apiKeyVal && !apiKeyVal.includes('*')) payload.api_key = apiKeyVal;
+
+  try {
+    await api('POST', '/amelia/config', payload);
+    _ameliaEmployeeMap = employeeMap;
+    _ameliaServiceMap  = serviceMap;
+    toast('Configuración Amelia guardada ✓');
+  } catch (err) {
+    toast('Error: ' + err.message, 'err');
+  }
+}
+
+function ameliaCopiarWebhook() {
+  const el = document.getElementById('amelia-webhook-url');
+  if (!el) return;
+  navigator.clipboard.writeText(el.value).then(() => toast('URL copiada ✓')).catch(() => {
+    el.select(); document.execCommand('copy'); toast('URL copiada ✓');
+  });
 }
 </script>
 </body>
