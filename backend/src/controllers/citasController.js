@@ -1,6 +1,7 @@
 // src/controllers/citasController.js
 const { query, withTransaction } = require('../models/db');
 const logger = require('../utils/logger');
+const waService = require('../services/whatsappService');
 
 // Timezone Miami = America/New_York (ET)
 // Todos los timestamps se almacenan en UTC, el frontend muestra en ET
@@ -109,6 +110,24 @@ async function crearCita(req, res) {
         `INSERT INTO actividad (agente_id, cliente_id, accion, detalles) VALUES ($1,$2,'cita.creada',$3)`,
         [req.user.id, cliente_id, JSON.stringify({ cita_id: rows[0].id, fecha: fecha_inicio })]
       ).catch(() => {});
+
+      // Notificación WhatsApp de confirmación (si tiene teléfono)
+      if (estado === 'confirmada') {
+        const { rows: cli } = await query(
+          `SELECT nombre, telefono FROM clientes WHERE id=$1 AND telefono IS NOT NULL`, [cliente_id]
+        ).catch(() => ({ rows: [] }));
+
+        if (cli.length && cli[0].telefono) {
+          const tel   = cli[0].telefono.replace(/\D/g, '');
+          const fecha = new Date(fecha_inicio);
+          const hora  = fecha.toLocaleTimeString('es', { hour: '2-digit', minute: '2-digit', hour12: true });
+          const fechaTxt = fecha.toLocaleDateString('es', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+          const tituloMsg = titulo || (await query(`SELECT nombre FROM agenda_servicios WHERE id=$1`,[servicio_id||'']).then(r=>r.rows[0]?.nombre).catch(()=>null)) || 'Cita';
+
+          const msg = `✅ *Cita confirmada — IG Accounting*\n\nHola ${cli[0].nombre}, su cita ha sido agendada:\n\n📋 *${tituloMsg}*\n📅 ${fechaTxt}\n🕐 ${hora}\n\nSi necesita reprogramar, contáctenos. ¡Le esperamos! 😊`;
+          waService.enviarTexto(tel, msg).catch(e => logger.warn(`WA cita confirmación: ${e.message}`));
+        }
+      }
     }
 
     logger.info(`Cita creada: ${rows[0].id} → ${fecha_inicio}`);
