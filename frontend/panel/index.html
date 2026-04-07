@@ -2412,6 +2412,8 @@ async function renderCpBody() {
       'archivo.recibido_whatsapp':'📎', 'archivo.subido_manual':'📤', 'archivo.subido_portal':'📥',
       'mensaje.recibido_whatsapp':'💬', 'solicitud.creada':'📄', 'recordatorio.programado':'⏰',
       'pago_recordatorio':'💳', 'servicio.creado':'🏢', 'servicio.actualizado':'🔄',
+      'cita.creada':'📅', 'cita.confirmada':'✅', 'cita.cancelada':'❌',
+      'cita.completada':'🎉', 'cita.no_asistio':'⚠️',
     };
     body.innerHTML = `
       <div class="cp-section">
@@ -2425,6 +2427,7 @@ async function renderCpBody() {
             else if (det.nombre) desc = det.nombre;
             else if (det.texto) desc = det.texto.substring(0,60)+'...';
             else if (det.email) desc = `email: ${det.email}`;
+            else if (det.fecha && a.accion.startsWith('cita.')) desc = `${a.accion.replace('cita.','')} — ${fmtD(det.fecha)}`;
             return `<div style="display:flex;gap:12px;padding:10px 0;border-bottom:1px solid #f3f4f6">
               <div style="font-size:18px;flex-shrink:0;width:28px;text-align:center">${icono}</div>
               <div style="flex:1;min-width:0">
