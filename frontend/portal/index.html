@@ -92,6 +92,7 @@ tr:last-child td{border-bottom:none}
   <div class="tab active" onclick="showTab('inicio')">Mi resumen</div>
   <div class="tab" onclick="showTab('servicios')">Mis servicios</div>
   <div class="tab" onclick="showTab('pagos')">Pagos</div>
+  <div class="tab" onclick="showTab('citas')">Mis citas</div>
   <div class="tab" onclick="showTab('documentos')">Mis documentos</div>
   <div class="tab" onclick="showTab('solicitudes')">Documentos solicitados</div>
 </div>
@@ -120,10 +121,10 @@ async function api(path) {
 
 function showTab(tab) {
   document.querySelectorAll('.tab').forEach((el,i) => {
-    const tabs=['inicio','servicios','pagos','documentos','solicitudes'];
+    const tabs=['inicio','servicios','pagos','citas','documentos','solicitudes'];
     el.classList.toggle('active', tabs[i]===tab);
   });
-  const fns = { inicio:loadInicio, servicios:loadServicios, pagos:loadPagos, documentos:loadDocumentos, solicitudes:loadSolicitudes };
+  const fns = { inicio:loadInicio, servicios:loadServicios, pagos:loadPagos, citas:loadCitas, documentos:loadDocumentos, solicitudes:loadSolicitudes };
   fns[tab]?.();
 }
 
@@ -137,14 +138,16 @@ const badge = (e) => {
 };
 
 async function loadInicio() {
-  const [perfil, servicios, pagos, solicitudes] = await Promise.all([
-    api('/portal/perfil'), api('/portal/servicios'), api('/portal/pagos'), api('/portal/solicitudes')
+  const [perfil, servicios, pagos, solicitudes, citas] = await Promise.all([
+    api('/portal/perfil'), api('/portal/servicios'), api('/portal/pagos'), api('/portal/solicitudes'), api('/portal/citas')
   ]);
   if (!perfil) return;
-  const pendientes = (pagos||[]).filter(p=>p.estado==='pendiente'||p.estado==='enviado');
-  const docsReq    = (solicitudes||[]).filter(s=>s.estado==='pendiente');
+  const pendientes  = (pagos||[]).filter(p=>p.estado==='pendiente'||p.estado==='enviado');
+  const docsReq     = (solicitudes||[]).filter(s=>s.estado==='pendiente');
+  const proxCitas   = (citas||[]).filter(c=>new Date(c.fecha_inicio)>=new Date()&&c.estado!=='cancelada');
+  const proxCita    = proxCitas[0];
   set(`
-    <div class="stats-row">
+    <div class="stats-row" style="grid-template-columns:repeat(auto-fit,minmax(160px,1fr))">
       <div class="stat">
         <div class="stat-label">Servicios activos</div>
         <div class="stat-value">${(servicios||[]).filter(s=>!['completado','cancelado'].includes(s.estado)).length}</div>
@@ -155,12 +158,35 @@ async function loadInicio() {
         <div class="stat-value" style="color:var(--yellow)">${pendientes.length}</div>
         <div class="stat-sub">${pendientes.length ? fmt(pendientes.reduce((a,p)=>a+parseFloat(p.monto),0)) : 'Al día'}</div>
       </div>
+      <div class="stat" style="cursor:pointer" onclick="showTab('citas')">
+        <div class="stat-label">Próximas citas</div>
+        <div class="stat-value" style="color:var(--accent)">${proxCitas.length}</div>
+        <div class="stat-sub">${proxCita ? new Date(proxCita.fecha_inicio).toLocaleDateString('es',{day:'numeric',month:'short'}) : 'Sin citas'}</div>
+      </div>
       <div class="stat">
         <div class="stat-label">Documentos solicitados</div>
         <div class="stat-value" style="color:var(--red)">${docsReq.length}</div>
         <div class="stat-sub">${docsReq.length?'Pendientes de envío':'Todo al día'}</div>
       </div>
     </div>
+
+    ${proxCitas.length ? `
+    <div class="card">
+      <div class="card-header"><span class="card-title">📅 Próxima cita</span><button onclick="showTab('citas')" style="background:none;border:none;font-size:13px;color:var(--accent);cursor:pointer;font-family:'DM Sans',sans-serif">Ver todas</button></div>
+      <div class="card-body">
+        <div style="display:flex;align-items:center;gap:16px;padding:4px 0">
+          <div style="width:52px;height:52px;background:${proxCita.color||'var(--accent2)'};border-radius:12px;display:flex;flex-direction:column;align-items:center;justify-content:center;flex-shrink:0;border:2px solid ${proxCita.color||'var(--accent)'}">
+            <div style="font-size:10px;font-weight:600;color:${proxCita.color||'var(--accent)'};text-transform:uppercase">${new Date(proxCita.fecha_inicio).toLocaleDateString('es',{month:'short'})}</div>
+            <div style="font-size:20px;font-weight:700;color:${proxCita.color||'var(--accent)'};line-height:1">${new Date(proxCita.fecha_inicio).getDate()}</div>
+          </div>
+          <div>
+            <div style="font-weight:600;font-size:14px">${proxCita.titulo||proxCita.servicio_nombre||'Cita'}</div>
+            <div style="font-size:13px;color:var(--muted);margin-top:2px">🕐 ${new Date(proxCita.fecha_inicio).toLocaleTimeString('es',{hour:'2-digit',minute:'2-digit'})} – ${new Date(proxCita.fecha_fin).toLocaleTimeString('es',{hour:'2-digit',minute:'2-digit'})}</div>
+            ${proxCita.agente_nombre?`<div style="font-size:12px;color:var(--muted)">👤 ${proxCita.agente_nombre}</div>`:''}
+          </div>
+        </div>
+      </div>
+    </div>` : ''}
 
     ${pendientes.length ? `
     <div class="card">
@@ -208,6 +234,48 @@ async function loadInicio() {
         </tbody></table>
       </div>
     </div>
+  `);
+}
+
+async function loadCitas() {
+  const d = await api('/portal/citas');
+  if (!d) return;
+  const ahora = new Date();
+  const proximas = d.filter(c => new Date(c.fecha_inicio) >= ahora && c.estado !== 'cancelada');
+  const pasadas  = d.filter(c => new Date(c.fecha_inicio) < ahora || c.estado === 'cancelada');
+  const fmtCita  = (c) => {
+    const ini = new Date(c.fecha_inicio);
+    const fin = new Date(c.fecha_fin);
+    const estadoBadge = {pendiente:'yellow',confirmada:'green',cancelada:'red',completada:'blue',no_asistio:'gray'};
+    const eb = estadoBadge[c.estado] || 'gray';
+    return `<div style="background:var(--bg);border:1px solid var(--border);border-left:4px solid ${c.color||'#2563EB'};border-radius:10px;padding:16px 18px;margin-bottom:12px">
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;flex-wrap:wrap">
+        <div>
+          <div style="font-weight:600;font-size:14px;margin-bottom:4px">${c.titulo||c.servicio_nombre||'Cita'}</div>
+          <div style="font-size:13px;color:var(--muted);margin-bottom:2px">📅 ${ini.toLocaleDateString('es',{weekday:'long',day:'numeric',month:'long',year:'numeric'})}</div>
+          <div style="font-size:13px;color:var(--muted);margin-bottom:4px">🕐 ${ini.toLocaleTimeString('es',{hour:'2-digit',minute:'2-digit'})} – ${fin.toLocaleTimeString('es',{hour:'2-digit',minute:'2-digit'})}</div>
+          ${c.agente_nombre?`<div style="font-size:12px;color:var(--muted)">👤 Asesor: ${c.agente_nombre}</div>`:''}
+          ${c.notas?`<div style="font-size:12px;color:var(--muted);margin-top:6px;font-style:italic">${c.notas}</div>`:''}
+        </div>
+        <span class="badge badge-${eb}">${c.estado?.replace(/_/g,' ')}</span>
+      </div>
+    </div>`;
+  };
+  set(`
+    ${proximas.length ? `
+    <div class="card">
+      <div class="card-header"><span class="card-title">📅 Próximas citas</span><span style="font-size:12px;color:var(--muted)">${proximas.length} programada${proximas.length!==1?'s':''}</span></div>
+      <div class="card-body">${proximas.map(fmtCita).join('')}</div>
+    </div>` : `
+    <div class="card">
+      <div class="card-header"><span class="card-title">📅 Próximas citas</span></div>
+      <div class="card-body"><div class="empty">No tienes citas próximas programadas.</div></div>
+    </div>`}
+    ${pasadas.length ? `
+    <div class="card">
+      <div class="card-header"><span class="card-title" style="color:var(--muted)">Citas anteriores</span></div>
+      <div class="card-body">${pasadas.map(fmtCita).join('')}</div>
+    </div>` : ''}
   `);
 }
 

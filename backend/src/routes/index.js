@@ -13,7 +13,7 @@ const dashCtrl     = require('../controllers/dashboardController');
 const { conv }     = require('../controllers/dashboardController');
 const webhookCtrl  = require('../controllers/webhookController');
 const llamadasCtrl = require('../controllers/llamadasController');
-const { procesarRecordatorios } = require('../services/cronService');
+const { procesarRecordatorios, procesarRecordatoriosCitas } = require('../services/cronService');
 const { query }    = require('../models/db');
 const bcrypt       = require('bcryptjs');
 
@@ -179,6 +179,12 @@ router.get ('/conversaciones/:id',             authenticate, soloAgente, conv.ob
 router.post('/conversaciones/:id/mensajes',    authenticate, soloAgente, conv.enviarMensaje);
 router.put ('/conversaciones/:id/estado',      authenticate, soloAgente, conv.cambiarEstado);
 router.put ('/conversaciones/:id/asignar',     authenticate, soloAgente, conv.asignarAgente);
+router.put ('/conversaciones/:id/leer',        authenticate, soloAgente, async (req, res) => {
+  try {
+    await query(`UPDATE conversaciones SET mensajes_sin_leer=0 WHERE id=$1`, [req.params.id]);
+    res.json({ success: true });
+  } catch (err) { res.status(500).json({ message: err.message }); }
+});
 
 // ── AGENTES ───────────────────────────────────────────────────────────────────
 router.get ('/agentes', authenticate, soloAgente, async (req, res) => {
@@ -280,6 +286,10 @@ router.post('/admin/run-reminders', authenticate, soloAdmin, async (req, res) =>
   await procesarRecordatorios();
   res.json({ success: true, message: 'Recordatorios procesados' });
 });
+router.post('/admin/run-cita-reminders', authenticate, soloAdmin, async (req, res) => {
+  await procesarRecordatoriosCitas();
+  res.json({ success: true, message: 'Recordatorios de citas procesados' });
+});
 
 // ── WORDPRESS WEBHOOK (público) ───────────────────────────────────────────────
 router.post('/wordpress/webhook', async (req, res) => {
@@ -326,6 +336,22 @@ router.get ('/portal/archivos',        authenticate, soloCliente, clientesCtrl.p
 router.get ('/portal/solicitudes',     authenticate, soloCliente, clientesCtrl.portalSolicitudes);
 router.get ('/portal/notificaciones',  authenticate, soloCliente, clientesCtrl.portalNotificaciones);
 router.put ('/portal/cambiar-password',authenticate, soloCliente, authCtrl.cambiarPassword);
+router.get ('/portal/citas',           authenticate, soloCliente, async (req, res) => {
+  try {
+    const { rows } = await query(`
+      SELECT c.id, c.titulo, c.fecha_inicio, c.fecha_fin, c.estado, c.tipo, c.notas, c.color,
+             a.nombre AS agente_nombre,
+             s.nombre AS servicio_nombre, s.duracion_minutos
+      FROM citas c
+      LEFT JOIN agentes a         ON a.id = c.agente_id
+      LEFT JOIN agenda_servicios s ON s.id = c.servicio_id
+      WHERE c.cliente_id = $1
+        AND c.fecha_inicio >= NOW() - INTERVAL '30 days'
+      ORDER BY c.fecha_inicio ASC
+    `, [req.user.id]);
+    res.json(rows);
+  } catch (err) { res.status(500).json({ message: err.message }); }
+});
 
 // ── PORTAL: SUBIR ARCHIVO PARA UNA SOLICITUD ──────────────────────────────────
 router.post('/portal/solicitudes/:id/subir', authenticate, soloCliente, ...(() => {

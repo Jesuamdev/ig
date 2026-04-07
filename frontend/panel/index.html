@@ -1824,6 +1824,7 @@ let token = localStorage.getItem('ce_token');
 let user  = JSON.parse(localStorage.getItem('ce_user') || 'null');
 let currentView = 'chats';
 let currentClienteId = null;
+let currentConvId = null;
 let _allConvs = [];
 let _allArchivos = [];
 let _allClientes = [];
@@ -1935,7 +1936,7 @@ function renderWAList(convs) {
     const hora   = c.ultima_actividad ? fmtT(c.ultima_actividad) : '';
     const prev   = c.ultimo_mensaje || 'Sin mensajes';
     const hasFile= prev.startsWith('📎');
-    const unread = c.mensajes_sin_leer > 0 ? `<div class="chat-unread">${c.mensajes_sin_leer}</div>` : '';
+    const unread = (c.mensajes_sin_leer > 0 && c.id != currentConvId) ? `<div class="chat-unread">${c.mensajes_sin_leer}</div>` : '';
     return `<div class="chat-item" id="ci-${c.id}" onclick="abrirConv('${c.id}','${nombre.replace(/'/g,"\\'")}','${color}')">
       <div class="chat-av" style="background:${color}">${ini}</div>
       <div class="chat-info">
@@ -1948,6 +1949,17 @@ function renderWAList(convs) {
       </div>
     </div>`;
   }).join('');
+  // Restaurar conversación activa después de re-render
+  if (currentConvId) {
+    document.getElementById(`ci-${currentConvId}`)?.classList.add('active');
+  }
+  // Actualizar badge global con total real de no leídos (excluyendo conv activa)
+  const totalNoLeidos = convs.reduce((acc, c) => acc + (c.mensajes_sin_leer > 0 && c.id != currentConvId ? c.mensajes_sin_leer : 0), 0);
+  const badge = document.getElementById('wa-badge');
+  if (badge) {
+    badge.textContent = totalNoLeidos;
+    badge.classList.toggle('hidden', totalNoLeidos === 0);
+  }
 }
 
 function filtrarWA(q) {
@@ -1964,6 +1976,7 @@ function filtrarTabWA(tab, el) {
 }
 
 async function abrirConv(id, nombre, color) {
+  currentConvId = id;
   document.querySelectorAll('.chat-item').forEach(c=>c.classList.remove('active'));
   document.getElementById(`ci-${id}`)?.classList.add('active');
 
@@ -3284,28 +3297,33 @@ async function desactivarAgente(id) {
     socket.on('nuevo_mensaje', data => {
       const convId = data.conversacion_id;
       const nombre = data.contacto?.nombre || data.contacto?.telefono || 'Contacto';
+      const esConvActiva = convId == currentConvId && currentView === 'chats';
 
-      // Badge
-      const badge=document.getElementById('wa-badge');
-      if(badge){const n=parseInt(badge.textContent||'0')+1;badge.textContent=n;badge.classList.remove('hidden');}
+      // Badge global solo si la conversación NO está activa
+      if (!esConvActiva) {
+        const badge=document.getElementById('wa-badge');
+        if(badge){const n=parseInt(badge.textContent||'0')+1;badge.textContent=n;badge.classList.remove('hidden');}
+      }
 
-      // Notificación escritorio
-      if('Notification' in window && Notification.permission==='granted') {
+      // Notificación escritorio solo si conversación no está activa
+      if (!esConvActiva && 'Notification' in window && Notification.permission==='granted') {
         const notif=new Notification(`💬 ${nombre}`,{body:(data.mensaje?.contenido||'Nuevo mensaje').substring(0,60),tag:`conv-${convId}`});
-        notif.onclick=()=>{window.focus();showView('chats');notif.close();};
+        notif.onclick=()=>{window.focus();showView('chats');abrirConv(convId,nombre,avatarColor(nombre));notif.close();};
         setTimeout(()=>notif.close(),5000);
       }
 
       // Refrescar lista
       if(currentView==='chats') {
         refrescarWAList();
-        const activeConv=document.querySelector('.chat-item.active');
-        if(activeConv?.id===`ci-${convId}`) {
+        if(esConvActiva) {
+          // Mensaje directo al chat abierto
           const msgs=document.getElementById('wa-msgs');
           if(msgs) {
             msgs.insertAdjacentHTML('beforeend',renderMsg({...data.mensaje,archivo_id:data.archivo?.id,archivo_nombre:data.archivo?.nombre_original}));
             msgs.scrollTop=msgs.scrollHeight;
           }
+          // Marcar como leído en backend (la conv está abierta)
+          api('PUT', `/conversaciones/${convId}/leer`).catch(()=>{});
         }
       } else {
         toast(`💬 ${nombre}: ${(data.mensaje?.contenido||'').substring(0,40)}`,'ok');

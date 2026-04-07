@@ -29,7 +29,13 @@ function iniciarCron() {
     } catch (err) { logger.error('Cron campañas:', err.message); }
   });
 
-  logger.info('✅ Crons activos: recordatorios (8AM), secuencias (c/15min), campañas (c/5min)');
+  // Recordatorios de citas — diario 7:00 AM (un día antes y el mismo día)
+  cron.schedule('0 7 * * *', async () => {
+    logger.info('⏰ Cron: procesando recordatorios de citas...');
+    await procesarRecordatoriosCitas();
+  });
+
+  logger.info('✅ Crons activos: recordatorios (8AM), citas (7AM), secuencias (c/15min), campañas (c/5min)');
 }
 
 async function procesarRecordatorios() {
@@ -122,5 +128,61 @@ async function procesarRecordatorios() {
   }
 }
 
+async function procesarRecordatoriosCitas() {
+  try {
+    const ahora = new Date();
+
+    // Citas de hoy y de mañana sin recordatorio enviado
+    const { rows: citas } = await query(`
+      SELECT ct.*,
+             cl.nombre AS cliente_nombre, cl.apellido AS cliente_apellido,
+             cl.telefono AS cliente_telefono, cl.email AS cliente_email,
+             a.nombre AS agente_nombre,
+             s.nombre AS servicio_nombre
+      FROM citas ct
+      LEFT JOIN clientes cl        ON cl.id = ct.cliente_id
+      LEFT JOIN agentes a          ON a.id  = ct.agente_id
+      LEFT JOIN agenda_servicios s ON s.id  = ct.servicio_id
+      WHERE ct.estado IN ('pendiente','confirmada')
+        AND ct.cliente_id IS NOT NULL
+        AND cl.telefono IS NOT NULL
+        AND ct.fecha_inicio BETWEEN NOW() AND NOW() + INTERVAL '25 hours'
+    `);
+
+    let enviados = 0;
+
+    for (const cita of citas) {
+      try {
+        const tel    = cita.cliente_telefono.replace(/\D/g, '');
+        const fecha  = new Date(cita.fecha_inicio);
+        const esHoy  = fecha.toDateString() === ahora.toDateString();
+        const titulo = cita.titulo || cita.servicio_nombre || 'Cita';
+        const hora   = fecha.toLocaleTimeString('es', { hour: '2-digit', minute: '2-digit', hour12: true });
+        const diaTxt = esHoy ? 'hoy' : 'mañana';
+
+        const msg = `📅 *Recordatorio de cita — IG Accounting*\n\nHola ${cita.cliente_nombre}, le recordamos que tiene una cita programada para *${diaTxt}*:\n\n🗓 *${titulo}*\n🕐 *${hora}*${cita.agente_nombre ? `\n👤 Asesor: ${cita.agente_nombre}` : ''}\n\nSi necesita reprogramar, contáctenos. ¡Le esperamos! 😊`;
+
+        await waService.enviarTexto(tel, msg);
+        enviados++;
+
+        // Notificación en sistema
+        await query(`
+          INSERT INTO notificaciones (cliente_id, tipo, titulo, mensaje, canal, enviada)
+          VALUES ($1, 'recordatorio_cita', $2, $3, 'whatsapp', TRUE)
+        `, [cita.cliente_id,
+            `Recordatorio: cita ${diaTxt}`,
+            `${titulo} — ${hora}`]).catch(() => {});
+
+      } catch (e) {
+        logger.error(`Error recordatorio cita ${cita.id}: ${e.message}`);
+      }
+    }
+
+    logger.info(`✅ Cron citas: ${enviados} recordatorios enviados`);
+  } catch (err) {
+    logger.error('Error en cron de citas:', err.message);
+  }
+}
+
 // Permite ejecución manual desde /api/admin/run-reminders
-module.exports = { iniciarCron, procesarRecordatorios };
+module.exports = { iniciarCron, procesarRecordatorios, procesarRecordatoriosCitas };
