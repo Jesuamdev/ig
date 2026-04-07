@@ -87,7 +87,7 @@ async function crearCita(req, res) {
     const overlap = await query(`
       SELECT id FROM citas
       WHERE agente_id = $1
-        AND estado NOT IN ('cancelada')
+        AND estado NOT IN ('cancelada','no_asistio')
         AND tsrange(fecha_inicio, fecha_fin) && tsrange($2::timestamp, $3::timestamp)
     `, [agente_id, fecha_inicio, fecha_fin]);
 
@@ -126,7 +126,7 @@ async function crearCita(req, res) {
           const fecha = new Date(fecha_inicio);
           const hora  = fecha.toLocaleTimeString('es', { hour: '2-digit', minute: '2-digit', hour12: true });
           const fechaTxt = fecha.toLocaleDateString('es', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
-          const tituloMsg = titulo || (await query(`SELECT nombre FROM agenda_servicios WHERE id=$1`,[servicio_id||'']).then(r=>r.rows[0]?.nombre).catch(()=>null)) || 'Cita';
+          const tituloMsg = titulo || (servicio_id ? await query(`SELECT nombre FROM agenda_servicios WHERE id=$1`,[servicio_id]).then(r=>r.rows[0]?.nombre).catch(()=>null) : null) || 'Cita';
 
           const msg = `✅ *Cita confirmada — IG Accounting*\n\nHola ${cli[0].nombre}, su cita ha sido agendada:\n\n📋 *${tituloMsg}*\n📅 ${fechaTxt}\n🕐 ${hora}\n\nSi necesita reprogramar, contáctenos. ¡Le esperamos! 😊`;
           waService.enviarTexto(tel, msg).catch(e => logger.warn(`WA cita confirmación: ${e.message}`));
@@ -154,19 +154,19 @@ async function actualizarCita(req, res) {
 
   try {
     // Verificar solapamiento al cambiar horario o agente (excluir la cita actual)
-    if ((fecha_inicio || fecha_fin) && agente_id !== undefined) {
+    if (fecha_inicio || fecha_fin || agente_id !== undefined) {
       const { rows: current } = await query(
         `SELECT agente_id, fecha_inicio, fecha_fin FROM citas WHERE id=$1`, [id]
       );
       if (current.length) {
-        const ag  = agente_id  || current[0].agente_id;
+        const ag  = agente_id  !== undefined ? agente_id  : current[0].agente_id;
         const ini = fecha_inicio || current[0].fecha_inicio;
         const fin = fecha_fin    || current[0].fecha_fin;
         if (ag) {
           const overlap = await query(`
             SELECT id FROM citas
             WHERE id != $1 AND agente_id = $2
-              AND estado NOT IN ('cancelada')
+              AND estado NOT IN ('cancelada','no_asistio')
               AND tsrange(fecha_inicio, fecha_fin) && tsrange($3::timestamp, $4::timestamp)
           `, [id, ag, ini, fin]);
           if (overlap.rows.length) {
@@ -260,9 +260,10 @@ async function obtenerSlots(req, res) {
       if (svc.length) { duracion = svc[0].duracion_minutos; intervalo = svc[0].intervalo_minutos; }
     }
 
-    // Día de la semana (0=domingo...6=sábado) en fecha dada
-    const d = new Date(fecha + 'T00:00:00');
-    const diaSemana = d.getDay();
+    // Día de la semana (0=domingo...6=sábado) en zona horaria Miami (America/New_York)
+    const diaSemana = new Date(
+      new Date(fecha + 'T12:00:00').toLocaleString('en-US', { timeZone: 'America/New_York' })
+    ).getDay();
 
     // Disponibilidad del agente ese día
     const { rows: disp } = await query(
@@ -279,7 +280,7 @@ async function obtenerSlots(req, res) {
     const { rows: citasExist } = await query(`
       SELECT fecha_inicio, fecha_fin FROM citas
       WHERE agente_id=$1
-        AND estado NOT IN ('cancelada')
+        AND estado NOT IN ('cancelada','no_asistio')
         AND fecha_inicio::date = $2::date
     `, [agente_id, fecha]);
 

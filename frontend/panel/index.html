@@ -5534,10 +5534,10 @@ function agendaAbrirModalNuevaCita(fechaHoraStr) {
   const ahora = fechaHoraStr || agToDatetimeLocal(new Date());
   document.getElementById('mc-fecha-inicio').value = ahora;
 
-  // Fin por defecto: +1 hora
+  // Fin por defecto: +1 hora (usando Date para evitar desbordamiento en hora 23)
   const finDate = new Date(ahora);
-  finDate.setHours(finDate.getHours() + 1);
-  document.getElementById('mc-fecha-fin').value = ahora.substring(0,11) + String(new Date(ahora).getHours()+1).padStart(2,'0') + ahora.substring(13);
+  finDate.setMinutes(finDate.getMinutes() + 60);
+  document.getElementById('mc-fecha-fin').value = agToDatetimeLocal(finDate);
 
   document.getElementById('mc-servicio').value = '';
   document.getElementById('mc-cliente').value  = '';
