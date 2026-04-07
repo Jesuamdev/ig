@@ -259,6 +259,120 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);height:100vh
 }
 .btn-add-client:hover{background:var(--purple-soft);border-color:var(--purple)}
 
+/* ── LLAMADAS — Botón ────────────────────────────────────────────────────── */
+.call-btn{
+  display:inline-flex;align-items:center;gap:5px;
+  padding:5px 12px;border-radius:20px;font-size:12px;font-weight:500;
+  border:1px solid var(--green-dark);color:var(--green-dark);
+  background:transparent;cursor:pointer;transition:all .15s;font-family:var(--font);
+}
+.call-btn:hover{background:var(--green);color:white;border-color:var(--green)}
+.call-btn svg{width:13px;height:13px;stroke:currentColor;fill:none;stroke-width:2;flex-shrink:0}
+
+/* ── LLAMADAS — Widget flotante ──────────────────────────────────────────── */
+#call-widget{
+  position:fixed;bottom:24px;right:24px;z-index:9999;
+  background:var(--sidebar-bg);color:white;
+  border-radius:20px;padding:20px 24px;
+  box-shadow:0 8px 40px rgba(0,0,0,.35);
+  min-width:280px;max-width:320px;
+  display:none;flex-direction:column;gap:14px;
+  animation:slideUp .25s ease;
+}
+#call-widget.active{display:flex}
+@keyframes slideUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+.cw-header{display:flex;align-items:center;gap:10px}
+.cw-avatar{
+  width:44px;height:44px;border-radius:50%;
+  background:linear-gradient(135deg,var(--green),var(--green-dark));
+  display:flex;align-items:center;justify-content:center;
+  font-size:16px;font-weight:700;flex-shrink:0;
+}
+.cw-info{flex:1}
+.cw-name{font-size:14px;font-weight:600;margin-bottom:2px}
+.cw-number{font-size:12px;color:rgba(255,255,255,.6)}
+.cw-status{
+  display:flex;align-items:center;gap:6px;
+  font-size:12px;color:rgba(255,255,255,.7);
+}
+.cw-dot{
+  width:8px;height:8px;border-radius:50%;background:var(--green);
+  animation:pulse 1.2s ease-in-out infinite;
+}
+.cw-dot.ringing{background:var(--amber)}
+.cw-dot.ended{background:var(--red);animation:none}
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.5;transform:scale(.85)}}
+.cw-timer{font-size:22px;font-weight:300;letter-spacing:2px;text-align:center;font-variant-numeric:tabular-nums}
+.cw-actions{display:flex;gap:10px;justify-content:center}
+.cw-btn{
+  width:48px;height:48px;border-radius:50%;border:none;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+  transition:transform .15s,filter .15s;
+}
+.cw-btn:hover{transform:scale(1.1)}
+.cw-btn svg{width:20px;height:20px;stroke:white;fill:none;stroke-width:2}
+.cw-btn.end{background:var(--red)}
+.cw-btn.mute{background:rgba(255,255,255,.15)}
+.cw-btn.mute.active{background:var(--amber)}
+.cw-btn.notify{background:rgba(37,211,102,.25);border:1px solid var(--green)}
+.cw-btn.dialout{background:var(--green)}
+.cw-notes{margin-top:4px}
+.cw-notes textarea{
+  width:100%;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.15);
+  border-radius:8px;color:white;font-family:var(--font);font-size:12px;
+  padding:8px;resize:none;height:60px;outline:none;
+}
+.cw-notes textarea::placeholder{color:rgba(255,255,255,.35)}
+.cw-notes textarea:focus{border-color:var(--green)}
+
+/* ── LLAMADAS — Overlay llamada entrante ─────────────────────────────────── */
+#incoming-call-overlay{
+  position:fixed;top:0;left:0;right:0;bottom:0;z-index:10000;
+  background:rgba(0,0,0,.6);backdrop-filter:blur(4px);
+  display:none;align-items:center;justify-content:center;
+}
+#incoming-call-overlay.active{display:flex}
+.ico-card{
+  background:var(--sidebar-bg);color:white;
+  border-radius:24px;padding:32px 40px;
+  text-align:center;min-width:280px;
+  animation:bounceIn .3s ease;
+}
+@keyframes bounceIn{from{opacity:0;transform:scale(.85)}to{opacity:1;transform:scale(1)}}
+.ico-ring{font-size:42px;margin-bottom:12px;animation:ring .6s ease-in-out infinite alternate}
+@keyframes ring{from{transform:rotate(-10deg)}to{transform:rotate(10deg)}}
+.ico-title{font-size:18px;font-weight:600;margin-bottom:4px}
+.ico-sub{font-size:13px;color:rgba(255,255,255,.6);margin-bottom:24px}
+.ico-btns{display:flex;gap:16px;justify-content:center}
+.ico-btn{
+  width:60px;height:60px;border-radius:50%;border:none;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+  transition:transform .15s;
+}
+.ico-btn:hover{transform:scale(1.1)}
+.ico-btn svg{width:24px;height:24px;stroke:white;fill:none;stroke-width:2}
+.ico-btn.accept{background:var(--green)}
+.ico-btn.decline{background:var(--red)}
+
+/* ── LLAMADAS — Historial en panel derecho ───────────────────────────────── */
+.call-history-item{
+  display:flex;align-items:center;gap:8px;
+  padding:7px 8px;border-radius:var(--r-sm);
+  transition:background .1s;
+}
+.call-history-item:hover{background:var(--bg)}
+.chi-icon{
+  width:28px;height:28px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;flex-shrink:0;
+}
+.chi-icon.out{background:#D1FAE5;color:#059669}
+.chi-icon.in{background:#DBEAFE;color:#2563EB}
+.chi-icon.miss{background:#FEE2E2;color:#DC2626}
+.chi-icon svg{width:13px;height:13px;stroke:currentColor;fill:none;stroke-width:2.5}
+.chi-info{flex:1;min-width:0}
+.chi-label{font-size:12px;font-weight:500;color:var(--text)}
+.chi-meta{font-size:10px;color:var(--text3)}
+
 /* ── CONTENT AREA ─────────────────────────────────────────────────────────── */
 .content-area{flex:1;overflow-y:auto;padding:28px 32px}
 .page-title{font-size:22px;font-weight:700;color:var(--text);margin-bottom:3px;letter-spacing:-.3px}
@@ -1573,6 +1687,10 @@ async function abrirConv(id, nombre, color) {
         ${d.cliente_id
           ? `<button class="btn btn-ghost btn-sm" onclick="abrirClientePanel('${d.cliente_id}')" style="color:var(--green);border-color:var(--green)">👤 Ver cliente</button>`
           : `<button class="btn btn-primary btn-sm" onclick="modalConvertirCliente('${d.contacto_id}','${(d.contacto_nombre||'').replace(/'/g,"\\'")}','${d.telefono}')">+ Agregar como cliente</button>`}
+        <button class="call-btn" onclick="iniciarLlamadaConv('${id}','${d.telefono}','${(d.contacto_nombre||d.telefono).replace(/'/g,"\\'")}','${d.contacto_id||''}')" title="Iniciar llamada">
+          <svg viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3.6 1h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 8.6a16 16 0 0 0 6 6l.96-.96a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+          Llamar
+        </button>
         <select style="padding:5px 10px;border-radius:8px;border:1px solid var(--border);font-size:12px;font-family:var(--font);background:var(--bg)" onchange="cambiarEstadoConv('${id}',this.value)">
           ${['abierto','en_proceso','resuelto','cerrado'].map(e=>`<option value="${e}" ${d.estado===e?'selected':''}>${e.replace('_',' ')}</option>`).join('')}
         </select>
@@ -1671,7 +1789,13 @@ function renderRightPanel(d) {
           </div>
         </div>`;
       }).join('')}
-    </div>` : ''}`;
+    </div>` : ''}
+    <div style="padding:10px 16px 4px;font-size:10px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.5px">Historial de llamadas</div>
+    <div id="call-history-container" style="padding:0 8px 8px">
+      <div style="padding:8px;font-size:11px;color:var(--text3)">Cargando...</div>
+    </div>`;
+  // Cargar historial de llamadas de forma asíncrona
+  setTimeout(() => cargarHistorialLlamadas(d.id), 0);
 }
 
 async function enviarMsg(convId, telefono) {
@@ -2919,6 +3043,9 @@ async function desactivarAgente(id) {
     socket.on('notificacion_archivo_global', data => {
       mostrarNotifArchivo(data, false);
     });
+
+    // ── Integrar módulo de llamadas con el socket ────────────────────────────
+    if (typeof initCallSocket === 'function') initCallSocket(socket);
   };
   script.onerror=()=>console.warn('⚠️ No se pudo cargar Socket.IO');
   document.head.appendChild(script);
@@ -4066,6 +4193,475 @@ showView = function(name) {
 
 // ── ARRANCAR ───────────────────────────────────────────────────────────────────
 showView('chats');
+</script>
+
+<!-- ═══════════════════════════════════════════════════════════════════════════
+     SISTEMA DE LLAMADAS — Widget flotante
+════════════════════════════════════════════════════════════════════════════ -->
+<div id="call-widget">
+  <div class="cw-header">
+    <div class="cw-avatar" id="cw-avatar">?</div>
+    <div class="cw-info">
+      <div class="cw-name" id="cw-name">Contacto</div>
+      <div class="cw-number" id="cw-number"></div>
+    </div>
+  </div>
+  <div class="cw-status">
+    <div class="cw-dot ringing" id="cw-dot"></div>
+    <span id="cw-status-text">Iniciando llamada...</span>
+  </div>
+  <div class="cw-timer" id="cw-timer">00:00</div>
+  <div class="cw-actions">
+    <!-- Abrir marcador nativo (tel:) -->
+    <button class="cw-btn dialout" id="cw-btn-dial" onclick="marcarNumero()" title="Marcar número">
+      <svg viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3.6 1h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 8.6a16 16 0 0 0 6 6l.96-.96a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+    </button>
+    <!-- Notificar por WhatsApp -->
+    <button class="cw-btn notify" onclick="notificarContactoLlamada()" title="Avisar por WhatsApp">
+      <svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+    </button>
+    <!-- Silenciar micrófono -->
+    <button class="cw-btn mute" id="cw-btn-mute" onclick="toggleMute()" title="Silenciar">
+      <svg viewBox="0 0 24 24"><line x1="1" y1="1" x2="23" y2="23" id="mute-slash" style="display:none"/><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
+    </button>
+    <!-- Finalizar -->
+    <button class="cw-btn end" onclick="finalizarLlamada()" title="Finalizar llamada">
+      <svg viewBox="0 0 24 24"><path d="M10.68 13.31a16 16 0 0 0 3.41 2.6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7 2 2 0 0 1 1.72 2v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.42 19.42 0 0 1 4.7 12a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3.6 1h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L7.91 8.6"/><line x1="23" y1="1" x2="1" y2="23"/></svg>
+    </button>
+  </div>
+  <div class="cw-notes">
+    <textarea id="cw-notes" placeholder="Notas de la llamada..."></textarea>
+  </div>
+</div>
+<audio id="remote-audio" autoplay></audio>
+
+<!-- ── OVERLAY llamada entrante ────────────────────────────────────────────── -->
+<div id="incoming-call-overlay">
+  <div class="ico-card">
+    <div class="ico-ring">📞</div>
+    <div class="ico-title" id="ico-caller">Llamada entrante</div>
+    <div class="ico-sub" id="ico-caller-sub">Agente desconocido</div>
+    <div class="ico-btns">
+      <button class="ico-btn accept" onclick="aceptarLlamadaEntrante()" title="Aceptar">
+        <svg viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3.6 1h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 8.6a16 16 0 0 0 6 6l.96-.96a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+      </button>
+      <button class="ico-btn decline" onclick="rechazarLlamadaEntrante()" title="Rechazar">
+        <svg viewBox="0 0 24 24"><path d="M10.68 13.31a16 16 0 0 0 3.41 2.6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7 2 2 0 0 1 1.72 2v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.42 19.42 0 0 1 4.7 12a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3.6 1h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L7.91 8.6"/><line x1="23" y1="1" x2="1" y2="23"/></svg>
+      </button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ═══════════════════════════════════════════════════════════════════════════════
+// SISTEMA DE LLAMADAS — Motor completo
+// ═══════════════════════════════════════════════════════════════════════════════
+const CallManager = (() => {
+  let _llamadaId        = null;
+  let _convId           = null;
+  let _telefono         = null;
+  let _timerInterval    = null;
+  let _segundos         = 0;
+  let _estado           = 'idle';   // idle | calling | active | ended
+  let _muted            = false;
+
+  // WebRTC
+  let _pc               = null;   // RTCPeerConnection
+  let _localStream      = null;
+  let _remotePeerId     = null;   // userId del otro agente
+
+  // Referencia al socket global (se inyecta desde initSocket)
+  let _socket           = null;
+
+  const ICE_SERVERS = [
+    { urls: 'stun:stun.l.google.com:19302' },
+    { urls: 'stun:stun1.l.google.com:19302' },
+  ];
+
+  // ── Helpers UI ──────────────────────────────────────────────────────────────
+  function _pad(n) { return String(n).padStart(2,'0'); }
+
+  function _tickTimer() {
+    _segundos++;
+    const m = Math.floor(_segundos / 60);
+    const s = _segundos % 60;
+    const el = document.getElementById('cw-timer');
+    if (el) el.textContent = `${_pad(m)}:${_pad(s)}`;
+  }
+
+  function _setStatus(texto, dotClass) {
+    const st  = document.getElementById('cw-status-text');
+    const dot = document.getElementById('cw-dot');
+    if (st)  st.textContent = texto;
+    if (dot) { dot.className = 'cw-dot'; if (dotClass) dot.classList.add(dotClass); }
+  }
+
+  function _showWidget(nombre, numero) {
+    const w = document.getElementById('call-widget');
+    const av = document.getElementById('cw-avatar');
+    if (w) w.classList.add('active');
+    if (av) av.textContent = (nombre || '?')[0].toUpperCase();
+    const n = document.getElementById('cw-name');
+    const nb = document.getElementById('cw-number');
+    if (n)  n.textContent  = nombre  || 'Contacto';
+    if (nb) nb.textContent = numero  || '';
+  }
+
+  function _hideWidget() {
+    document.getElementById('call-widget')?.classList.remove('active');
+    document.getElementById('cw-notes').value = '';
+    document.getElementById('cw-timer').textContent = '00:00';
+  }
+
+  // ── Gestión de llamada ───────────────────────────────────────────────────────
+  async function iniciar(convId, telefono, nombre, contactoId) {
+    if (_estado !== 'idle') { toast('Ya hay una llamada en curso','warn'); return; }
+
+    _convId    = convId;
+    _telefono  = telefono;
+    _estado    = 'calling';
+    _segundos  = 0;
+
+    _showWidget(nombre, telefono);
+    _setStatus('Iniciando llamada...', 'ringing');
+
+    try {
+      const d = await api('POST', '/llamadas', {
+        conversacion_id: convId,
+        contacto_id:     contactoId || null,
+        numero_destino:  telefono,
+      });
+      if (!d?.id) throw new Error(d?.message || 'No se pudo registrar la llamada');
+      _llamadaId = d.id;
+      _estado    = 'active';
+      _setStatus('En llamada', null);
+      _timerInterval = setInterval(_tickTimer, 1000);
+      toast('Llamada iniciada ✓');
+    } catch (err) {
+      _estado = 'idle';
+      _hideWidget();
+      toast('Error al iniciar llamada: ' + err.message, 'err');
+    }
+  }
+
+  async function finalizar() {
+    if (_estado === 'idle') return;
+    clearInterval(_timerInterval);
+
+    const notas = document.getElementById('cw-notes')?.value?.trim() || null;
+
+    _setStatus('Llamada finalizada', 'ended');
+    _estado = 'ended';
+
+    if (_llamadaId) {
+      await api('PUT', `/llamadas/${_llamadaId}`, {
+        estado:            'finalizada',
+        duracion_segundos: _segundos,
+        notas,
+      }).catch(() => {});
+    }
+
+    // Cerrar WebRTC si estaba activo
+    _cerrarPeerConnection();
+
+    setTimeout(() => {
+      _hideWidget();
+      _estado     = 'idle';
+      _llamadaId  = null;
+      _convId     = null;
+      _telefono   = null;
+      _segundos   = 0;
+      _muted      = false;
+
+      // Refrescar historial en el panel derecho si hay conversación activa
+      const active = document.querySelector('.chat-item.active');
+      if (active) {
+        const convId = active.id.replace('ci-','');
+        cargarHistorialLlamadas(convId);
+      }
+    }, 2000);
+  }
+
+  function cancelar() {
+    if (_estado === 'idle') return;
+    clearInterval(_timerInterval);
+    if (_llamadaId) {
+      api('PUT', `/llamadas/${_llamadaId}`, { estado:'cancelada', duracion_segundos:_segundos }).catch(()=>{});
+    }
+    _cerrarPeerConnection();
+    _hideWidget();
+    _estado = 'idle'; _llamadaId = null; _convId = null; _telefono = null; _segundos = 0;
+  }
+
+  function marcarNumero() {
+    if (_telefono) window.open(`tel:${_telefono}`, '_blank');
+  }
+
+  async function notificarContacto(agenteNombre) {
+    if (!_convId && !_telefono) return;
+    try {
+      await api('POST', '/llamadas/notificar-contacto', {
+        telefono:       _telefono,
+        conversacion_id: _convId || null,
+        agente_nombre:  agenteNombre,
+      });
+      toast('Notificación enviada por WhatsApp ✓');
+    } catch (err) {
+      toast('Error al notificar: ' + err.message, 'err');
+    }
+  }
+
+  function toggleMute() {
+    _muted = !_muted;
+    if (_localStream) {
+      _localStream.getAudioTracks().forEach(t => { t.enabled = !_muted; });
+    }
+    const btn = document.getElementById('cw-btn-mute');
+    const slash = document.getElementById('mute-slash');
+    if (btn)   btn.classList.toggle('active', _muted);
+    if (slash) slash.style.display = _muted ? '' : 'none';
+    toast(_muted ? 'Micrófono silenciado' : 'Micrófono activado');
+  }
+
+  // ── WebRTC ───────────────────────────────────────────────────────────────────
+  function setSocket(s) { _socket = s; }
+
+  async function _obtenerMicrofono() {
+    try {
+      _localStream = await navigator.mediaDevices.getUserMedia({ audio:true, video:false });
+      return true;
+    } catch {
+      toast('No se pudo acceder al micrófono','warn');
+      return false;
+    }
+  }
+
+  function _cerrarPeerConnection() {
+    if (_pc) { try { _pc.close(); } catch {} _pc = null; }
+    if (_localStream) { _localStream.getTracks().forEach(t => t.stop()); _localStream = null; }
+    const audio = document.getElementById('remote-audio');
+    if (audio) { audio.srcObject = null; }
+    if (_socket && _remotePeerId) {
+      _socket.emit('call_end', { to: _remotePeerId, llamada_id: _llamadaId });
+    }
+    _remotePeerId = null;
+  }
+
+  async function llamarAgente(agenteId, nombre) {
+    if (_estado !== 'idle') { toast('Ya hay una llamada en curso','warn'); return; }
+    if (!_socket) { toast('Socket no disponible','err'); return; }
+
+    const ok = await _obtenerMicrofono();
+    if (!ok) return;
+
+    _estado       = 'calling';
+    _remotePeerId = agenteId;
+    _showWidget(nombre, 'Agente interno');
+    _setStatus('Llamando...','ringing');
+
+    // Crear PeerConnection
+    _pc = new RTCPeerConnection({ iceServers: ICE_SERVERS });
+    _localStream.getTracks().forEach(t => _pc.addTrack(t, _localStream));
+
+    _pc.ontrack = (e) => {
+      const audio = document.getElementById('remote-audio');
+      if (audio && e.streams[0]) audio.srcObject = e.streams[0];
+    };
+
+    _pc.onicecandidate = (e) => {
+      if (e.candidate && _socket) {
+        _socket.emit('ice_candidate', { to: agenteId, candidate: e.candidate });
+      }
+    };
+
+    const offer = await _pc.createOffer();
+    await _pc.setLocalDescription(offer);
+
+    _socket.emit('call_offer', {
+      to:           agenteId,
+      offer,
+      llamada_id:   _llamadaId,
+      caller_name:  document.getElementById('s-user-name-txt')?.textContent || 'Agente',
+    });
+
+    _estado = 'active';
+    _timerInterval = setInterval(_tickTimer, 1000);
+    _setStatus('En llamada','');
+  }
+
+  async function _handleOffer(data) {
+    // Se llama cuando recibimos una oferta WebRTC entrante
+    _remotePeerId = data.from;
+    _pc = new RTCPeerConnection({ iceServers: ICE_SERVERS });
+
+    if (_localStream) {
+      _localStream.getTracks().forEach(t => _pc.addTrack(t, _localStream));
+    }
+
+    _pc.ontrack = (e) => {
+      const audio = document.getElementById('remote-audio');
+      if (audio && e.streams[0]) audio.srcObject = e.streams[0];
+    };
+
+    _pc.onicecandidate = (e) => {
+      if (e.candidate && _socket) {
+        _socket.emit('ice_candidate', { to: data.from, candidate: e.candidate });
+      }
+    };
+
+    await _pc.setRemoteDescription(new RTCSessionDescription(data.offer));
+    const answer = await _pc.createAnswer();
+    await _pc.setLocalDescription(answer);
+
+    if (_socket) {
+      _socket.emit('call_answer', { to: data.from, answer, llamada_id: data.llamada_id });
+    }
+
+    _estado = 'active';
+    _timerInterval = setInterval(_tickTimer, 1000);
+    _setStatus('En llamada','');
+  }
+
+  async function _handleAnswer(data) {
+    if (_pc) {
+      await _pc.setRemoteDescription(new RTCSessionDescription(data.answer));
+    }
+  }
+
+  async function _handleIceCandidate(data) {
+    if (_pc && data.candidate) {
+      try { await _pc.addIceCandidate(new RTCIceCandidate(data.candidate)); } catch {}
+    }
+  }
+
+  function getState()    { return _estado; }
+  function getLlamadaId(){ return _llamadaId; }
+  function getTelefono() { return _telefono; }
+
+  return {
+    iniciar, finalizar, cancelar, marcarNumero,
+    notificarContacto, toggleMute,
+    setSocket, llamarAgente,
+    _handleOffer, _handleAnswer, _handleIceCandidate,
+    getState, getLlamadaId, getTelefono,
+  };
+})();
+
+// ── Wrappers globales para botones del widget ─────────────────────────────────
+function finalizarLlamada()              { CallManager.finalizar(); }
+function marcarNumero()                  { CallManager.marcarNumero(); }
+function toggleMute()                    { CallManager.toggleMute(); }
+async function notificarContactoLlamada(){
+  const nombre = document.querySelector('.s-user-name')?.textContent || 'Agente';
+  await CallManager.notificarContacto(nombre);
+}
+
+// ── Iniciar llamada desde el botón en conversación ────────────────────────────
+function iniciarLlamadaConv(convId, telefono, nombre, contactoId) {
+  CallManager.iniciar(convId, telefono, nombre, contactoId || null);
+}
+
+// ── Llamada entrante (WebRTC entre agentes) ───────────────────────────────────
+let _incomingCallData = null;
+
+function mostrarLlamadaEntrante(data) {
+  _incomingCallData = data;
+  const overlay = document.getElementById('incoming-call-overlay');
+  const caller  = document.getElementById('ico-caller');
+  const sub     = document.getElementById('ico-caller-sub');
+  if (caller) caller.textContent = data.caller_name || 'Agente';
+  if (sub)    sub.textContent    = 'Llamada interna';
+  if (overlay) overlay.classList.add('active');
+
+  // Sonido del navegador (si permitido)
+  try {
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    const osc = ctx.createOscillator();
+    osc.type = 'sine'; osc.frequency.value = 440;
+    osc.connect(ctx.destination);
+    osc.start(); setTimeout(() => osc.stop(), 500);
+  } catch {}
+}
+
+async function aceptarLlamadaEntrante() {
+  document.getElementById('incoming-call-overlay')?.classList.remove('active');
+  if (!_incomingCallData) return;
+  const data = _incomingCallData;
+  _incomingCallData = null;
+
+  // Obtener micrófono
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({ audio:true, video:false });
+    CallManager._handleOffer({ ...data, localStream: stream });
+  } catch {
+    toast('No se pudo acceder al micrófono','warn');
+  }
+}
+
+function rechazarLlamadaEntrante() {
+  document.getElementById('incoming-call-overlay')?.classList.remove('active');
+  if (_incomingCallData && CallManager.getState() === 'idle') {
+    const s = window._callSocket;
+    if (s) s.emit('call_reject', { to: _incomingCallData.from, llamada_id: _incomingCallData.llamada_id });
+  }
+  _incomingCallData = null;
+}
+
+// ── Cargar historial de llamadas de una conversación ─────────────────────────
+async function cargarHistorialLlamadas(convId) {
+  const container = document.getElementById('call-history-container');
+  if (!container) return;
+  const data = await api('GET', `/llamadas?conversacion_id=${convId}&limit=10`);
+  if (!Array.isArray(data) || !data.length) {
+    container.innerHTML = '<div style="padding:8px 8px;font-size:11px;color:var(--text3)">Sin llamadas registradas</div>';
+    return;
+  }
+  container.innerHTML = data.map(ll => {
+    const isMiss = ['no_respondida','cancelada','fallida'].includes(ll.estado);
+    const isOut  = ll.tipo === 'saliente';
+    const cls    = isMiss ? 'miss' : (isOut ? 'out' : 'in');
+    const dur    = ll.duracion_segundos > 0
+      ? `${Math.floor(ll.duracion_segundos/60)}m ${ll.duracion_segundos%60}s`
+      : ll.estado;
+    const fecha  = ll.created_at ? new Date(ll.created_at).toLocaleDateString('es', {day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'}) : '';
+    return `<div class="call-history-item">
+      <div class="chi-icon ${cls}">
+        <svg viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3.6 1h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 8.6a16 16 0 0 0 6 6l.96-.96a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+      </div>
+      <div class="chi-info">
+        <div class="chi-label">${isOut ? 'Saliente' : 'Entrante'}${ll.numero_destino ? ' · '+ll.numero_destino : ''}</div>
+        <div class="chi-meta">${dur} · ${fecha}${ll.agente_nombre ? ' · '+ll.agente_nombre : ''}</div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ── Integración Socket.io con llamadas ────────────────────────────────────────
+function initCallSocket(socket) {
+  window._callSocket = socket;
+  CallManager.setSocket(socket);
+
+  socket.on('call_incoming', (data) => {
+    mostrarLlamadaEntrante(data);
+  });
+
+  socket.on('call_answered', (data) => {
+    CallManager._handleAnswer(data);
+  });
+
+  socket.on('ice_candidate', (data) => {
+    CallManager._handleIceCandidate(data);
+  });
+
+  socket.on('call_ended', () => {
+    if (CallManager.getState() !== 'idle') CallManager.finalizar();
+  });
+
+  socket.on('call_rejected', () => {
+    toast('Llamada rechazada');
+    if (CallManager.getState() !== 'idle') CallManager.cancelar();
+  });
+}
 </script>
 </body>
 </html>

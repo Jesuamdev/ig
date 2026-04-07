@@ -12,6 +12,7 @@ const archCtrl     = require('../controllers/archivosController');
 const dashCtrl     = require('../controllers/dashboardController');
 const { conv }     = require('../controllers/dashboardController');
 const webhookCtrl  = require('../controllers/webhookController');
+const llamadasCtrl = require('../controllers/llamadasController');
 const { procesarRecordatorios } = require('../services/cronService');
 const { query }    = require('../models/db');
 const bcrypt       = require('bcryptjs');
@@ -701,6 +702,24 @@ router.get('/system/status', authenticate, soloAdmin, async (req, res) => {
       memory_mb: Math.round(process.memoryUsage().rss / 1024 / 1024),
     });
   } catch (err) { res.status(500).json({ status: 'error', message: err.message }); }
+});
+
+// ── LLAMADAS ──────────────────────────────────────────────────────────────────
+router.post('/llamadas',           authenticate, soloAgente, llamadasCtrl.iniciarLlamada);
+router.put ('/llamadas/:id',       authenticate, soloAgente, llamadasCtrl.actualizarLlamada);
+router.get ('/llamadas',           authenticate, soloAgente, llamadasCtrl.historialLlamadas);
+router.get ('/llamadas/stats',     authenticate, soloAgente, llamadasCtrl.estadisticasLlamadas);
+
+// ── NOTIFICAR LLAMADA POR WHATSAPP ────────────────────────────────────────────
+router.post('/llamadas/notificar-contacto', authenticate, soloAgente, async (req, res) => {
+  try {
+    const { telefono, conversacion_id, agente_nombre } = req.body;
+    if (!telefono) return res.status(400).json({ message: 'telefono requerido' });
+    const waService = require('../services/whatsappService');
+    const mensaje = `📞 Hola, soy *${agente_nombre || 'tu agente'}* de IG Accounting Services.\n\nTe estoy contactando para hablar contigo. Por favor responde este mensaje cuando estés disponible o llámame de vuelta.`;
+    await waService.enviarTexto(telefono.replace(/\D/g,''), mensaje, conversacion_id || null, req.user.id);
+    res.json({ success: true });
+  } catch (err) { res.status(500).json({ message: err.message }); }
 });
 
 module.exports = router;

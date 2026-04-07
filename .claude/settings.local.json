@@ -1,0 +1,18 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(node --check src/controllers/llamadasController.js)",
+      "Bash(node --check src/models/migrate_llamadas.js)",
+      "Bash(node --check src/routes/index.js)",
+      "Bash(node --check src/index.js)",
+      "Bash(node:*)",
+      "Bash(npm install:*)",
+      "Bash(ls \"C:/Users/Admin/Downloads/ig/backend/.env\"*)",
+      "Bash(ls \"C:/Users/Admin/Downloads/ig/\"*.env)",
+      "Bash(ls \"C:/Users/Admin/Downloads/ig/\"*.example)",
+      "Bash(pg_isready)",
+      "Bash(psql -U postgres -c \"SELECT version\\(\\);\")",
+      "Bash(powershell:*)"
+    ]
+  }
+}

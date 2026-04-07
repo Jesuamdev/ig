@@ -2,15 +2,23 @@
 const { Resend } = require('resend');
 const logger = require('../utils/logger');
 
-const resend = new Resend(process.env.RESEND_API_KEY);
+// Inicialización lazy para evitar crash si no hay API key configurada
+let _resend = null;
+function getResend() {
+  if (!_resend && process.env.RESEND_API_KEY) {
+    _resend = new Resend(process.env.RESEND_API_KEY);
+  }
+  return _resend;
+}
 const FROM   = `${process.env.EMAIL_FROM_NAME||'CorpEase'} <${process.env.EMAIL_FROM||'noreply@corpease.com'}>`;
 
 async function _send({ to, subject, html }) {
   try {
-    if (!process.env.RESEND_API_KEY || process.env.RESEND_API_KEY === 're_tu_api_key') {
+    if (!process.env.RESEND_API_KEY || process.env.RESEND_API_KEY === 're_tu_api_key' || !process.env.RESEND_API_KEY.startsWith('re_')) {
       logger.warn(`[EMAIL SIMULADO] Para: ${to} | Asunto: ${subject}`);
       return { id: 'simulated' };
     }
+    const resend = getResend();
     const r = await resend.emails.send({ from: FROM, to, subject, html });
     logger.info(`Email enviado → ${to}: ${subject}`);
     return r;

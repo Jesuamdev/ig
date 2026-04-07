@@ -8,7 +8,8 @@
     "start":       "node src/index.js",
     "migrate":     "node src/models/migrate.js",
     "migrate:v2":  "node src/models/migrate_v2.js",
-    "migrate:all": "npm run migrate && npm run migrate:v2",
+    "migrate:all": "npm run migrate && npm run migrate:v2 && npm run migrate:llamadas",
+    "migrate:llamadas": "node src/models/migrate_llamadas.js",
     "seed":        "node src/models/seed.js",
     "setup":       "npm run migrate:all && npm run seed"
   },

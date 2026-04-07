@@ -98,6 +98,42 @@ io.on('connection', (socket) => {
   }
 
   socket.on('join_conversacion', (convId) => socket.join(`conv_${convId}`));
+
+  // ── SEÑALIZACIÓN WebRTC PARA LLAMADAS ───────────────────────────────────────
+  // Oferta de llamada → reenviar al agente destino o habitación de conversación
+  socket.on('call_offer', ({ to, offer, llamada_id, caller_name, conversacion_id }) => {
+    const target = to ? `agent_${to}` : (conversacion_id ? `conv_${conversacion_id}` : null);
+    if (target) {
+      io.to(target).emit('call_incoming', {
+        from:           socket.userId,
+        caller_name,
+        offer,
+        llamada_id,
+        conversacion_id,
+      });
+    }
+  });
+
+  // Respuesta a llamada
+  socket.on('call_answer', ({ to, answer, llamada_id }) => {
+    if (to) io.to(`agent_${to}`).emit('call_answered', { from: socket.userId, answer, llamada_id });
+  });
+
+  // Candidato ICE
+  socket.on('ice_candidate', ({ to, candidate }) => {
+    if (to) io.to(`agent_${to}`).emit('ice_candidate', { from: socket.userId, candidate });
+  });
+
+  // Fin de llamada
+  socket.on('call_end', ({ to, llamada_id }) => {
+    if (to) io.to(`agent_${to}`).emit('call_ended', { from: socket.userId, llamada_id });
+  });
+
+  // Rechazar llamada
+  socket.on('call_reject', ({ to, llamada_id }) => {
+    if (to) io.to(`agent_${to}`).emit('call_rejected', { from: socket.userId, llamada_id });
+  });
+
   socket.on('disconnect', () => logger.info(`Socket desconectado: ${socket.userId}`));
 });
 
