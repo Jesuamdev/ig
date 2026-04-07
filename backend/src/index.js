@@ -230,6 +230,66 @@ async function runMigrations() {
       CROSS JOIN (VALUES (1),(2),(3),(4),(5)) AS d(dia)
       ON CONFLICT (agente_id, dia_semana) DO NOTHING
     `);
+    // ── Chatbots ──
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS chatbots (
+        id               UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        nombre           VARCHAR(100) NOT NULL,
+        descripcion      TEXT,
+        activo           BOOLEAN DEFAULT false,
+        trigger_tipo     VARCHAR(30) DEFAULT 'palabras'
+                           CHECK (trigger_tipo IN ('palabras','siempre','nuevo_contacto')),
+        trigger_palabras TEXT[]  DEFAULT '{}',
+        nodo_inicio_id   UUID,
+        numero_id        VARCHAR(50),
+        created_at       TIMESTAMP DEFAULT NOW(),
+        updated_at       TIMESTAMP DEFAULT NOW()
+      );
+      CREATE TABLE IF NOT EXISTS chatbot_nodos (
+        id             UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        chatbot_id     UUID REFERENCES chatbots(id) ON DELETE CASCADE,
+        tipo           VARCHAR(30) DEFAULT 'mensaje'
+                         CHECK (tipo IN ('inicio','mensaje','pregunta','condicion','accion','fin','ia')),
+        nombre         VARCHAR(100),
+        configuracion  JSONB DEFAULT '{}',
+        posicion_x     FLOAT DEFAULT 0,
+        posicion_y     FLOAT DEFAULT 0,
+        created_at     TIMESTAMP DEFAULT NOW()
+      );
+      CREATE TABLE IF NOT EXISTS chatbot_conexiones (
+        id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        chatbot_id      UUID REFERENCES chatbots(id) ON DELETE CASCADE,
+        nodo_origen_id  UUID REFERENCES chatbot_nodos(id) ON DELETE CASCADE,
+        nodo_destino_id UUID REFERENCES chatbot_nodos(id) ON DELETE CASCADE,
+        condicion       JSONB,
+        created_at      TIMESTAMP DEFAULT NOW()
+      );
+      CREATE TABLE IF NOT EXISTS chatbot_sesiones (
+        id             UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        chatbot_id     UUID REFERENCES chatbots(id) ON DELETE CASCADE,
+        contacto_id    UUID REFERENCES contactos(id) ON DELETE CASCADE,
+        nodo_actual_id UUID REFERENCES chatbot_nodos(id) ON DELETE SET NULL,
+        estado         VARCHAR(20) DEFAULT 'activo'
+                         CHECK (estado IN ('activo','completado','abandonado','error')),
+        datos          JSONB DEFAULT '{}',
+        created_at     TIMESTAMP DEFAULT NOW(),
+        updated_at     TIMESTAMP DEFAULT NOW()
+      );
+      CREATE TABLE IF NOT EXISTS base_conocimiento (
+        id          UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        titulo      VARCHAR(200) NOT NULL,
+        contenido   TEXT NOT NULL,
+        categoria   VARCHAR(100),
+        etiquetas   TEXT[] DEFAULT '{}',
+        activo      BOOLEAN DEFAULT true,
+        created_at  TIMESTAMP DEFAULT NOW(),
+        updated_at  TIMESTAMP DEFAULT NOW()
+      );
+      CREATE INDEX IF NOT EXISTS idx_chatbot_nodos_bot    ON chatbot_nodos(chatbot_id);
+      CREATE INDEX IF NOT EXISTS idx_chatbot_conex_bot    ON chatbot_conexiones(chatbot_id);
+      CREATE INDEX IF NOT EXISTS idx_chatbot_sesiones_bot ON chatbot_sesiones(chatbot_id);
+      CREATE INDEX IF NOT EXISTS idx_chatbot_sesiones_con ON chatbot_sesiones(contacto_id);
+    `);
     // Tabla integraciones (crear si no existe)
     await pool.query(`
       CREATE TABLE IF NOT EXISTS integraciones (
