@@ -230,6 +230,23 @@ async function runMigrations() {
       CROSS JOIN (VALUES (1),(2),(3),(4),(5)) AS d(dia)
       ON CONFLICT (agente_id, dia_semana) DO NOTHING
     `);
+    // ── IA Configuración ──
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS ia_configuracion (
+        id           UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        tipo         VARCHAR(50) NOT NULL DEFAULT 'groq',
+        api_key      TEXT,
+        modelo       VARCHAR(100) DEFAULT 'llama-3.3-70b-versatile',
+        temperatura  NUMERIC(3,2) DEFAULT 0.7,
+        activo       BOOLEAN DEFAULT FALSE,
+        funciones    JSONB DEFAULT '{"traduccion":true,"deteccion_intencion":true,"respuesta_automatica":true}',
+        created_at   TIMESTAMP DEFAULT NOW(),
+        updated_at   TIMESTAMP DEFAULT NOW()
+      );
+      ALTER TABLE ia_configuracion DROP CONSTRAINT IF EXISTS ia_configuracion_tipo_check;
+      ALTER TABLE ia_configuracion ADD CONSTRAINT ia_configuracion_tipo_check
+        CHECK (tipo IN ('openai','anthropic','groq','custom'));
+    `);
     // ── Chatbots ──
     await pool.query(`
       CREATE TABLE IF NOT EXISTS chatbots (
