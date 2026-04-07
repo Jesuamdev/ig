@@ -1272,7 +1272,7 @@ tr:hover td{background:#FAFAFE}
 
     <!-- Calendario -->
     <div id="ag-calendar-wrap" style="height:calc(100vh - 130px);overflow:auto;background:var(--bg)">
-      <div id="ag-calendar"></div>
+      <div id="ag-calendar" style="height:100%"></div>
     </div>
   </div>
 </div>
@@ -5296,19 +5296,14 @@ function agRenderSemana() {
   const HORA_FIN = 18; // 6pm (muestra hasta las 5pm + buffer)
   const PX_HORA  = 60;
 
-  let html = `<div class="ag-semana-wrap">`;
-  // Columna de horas
-  html += `<div class="ag-semana-horas"><div style="height:50px;border-bottom:1px solid var(--border)"></div>`;
-  for (let h = HORA_INI; h < HORA_FIN; h++) {
-    const label = h < 12 ? `${h}am` : h === 12 ? '12pm' : `${h-12}pm`;
-    html += `<div class="ag-hora-label">${label}</div>`;
-  }
-  html += '</div>';
+  // Estructura: header sticky con espacio para la col-horas, luego body scrolleable
+  // con col-horas (etiquetas) + columnas de días — todo scroll junto
+  let html = `<div style="display:flex;flex-direction:column;height:100%;overflow:hidden">`;
 
-  // Columnas de días
-  html += `<div style="flex:1;display:flex;flex-direction:column;overflow:hidden">`;
-  // Header
-  html += `<div class="ag-semana-header" style="display:grid;grid-template-columns:repeat(7,1fr)">`;
+  // Header sticky: hueco para col-horas + días
+  html += `<div style="display:flex;flex-shrink:0;border-bottom:1px solid var(--border);background:var(--bg-white);position:sticky;top:0;z-index:5">`;
+  html += `<div style="width:52px;flex-shrink:0;border-right:1px solid var(--border)"></div>`; // hueco col-horas
+  html += `<div style="flex:1;display:grid;grid-template-columns:repeat(7,1fr)">`;
   for (let i = 0; i < 7; i++) {
     const d    = new Date(lun); d.setDate(lun.getDate() + i);
     const key  = agDateKey(d);
@@ -5318,13 +5313,17 @@ function agRenderSemana() {
       <span class="${esHoy?'hoy-num':''}">${d.getDate()}</span>
     </div>`;
   }
-  html += '</div>';
+  html += '</div></div>';
 
-  // Body
-  html += `<div class="ag-semana-body" style="overflow-y:auto;flex:1">`;
-  // Líneas de horas
+  // Body scrolleable: col-horas (etiquetas) + columnas de días
+  html += `<div style="display:flex;flex:1;overflow-y:auto" id="ag-semana-scroll">`;
+
+  // Columna de horas (etiquetas — scroll junto al cuerpo)
   html += `<div class="ag-semana-horas" style="flex-shrink:0;width:52px">`;
-  for (let h = HORA_INI; h < HORA_FIN; h++) html += `<div class="ag-hora-line"></div>`;
+  for (let h = HORA_INI; h < HORA_FIN; h++) {
+    const label = h < 12 ? `${h}am` : h === 12 ? '12pm' : `${h-12}pm`;
+    html += `<div class="ag-hora-label">${label}</div>`;
+  }
   html += '</div>';
 
   html += `<div style="flex:1;display:grid;grid-template-columns:repeat(7,1fr);position:relative">`;
@@ -5362,14 +5361,14 @@ function agRenderSemana() {
     html += `<div class="ag-now-line" style="top:${top}px;left:0;right:0"></div>`;
   }
 
-  html += '</div></div></div></div>';
+  html += '</div></div></div>';
   document.getElementById('ag-calendar').innerHTML = html;
 
   // Scroll a hora actual o 8am
-  const body = document.querySelector('.ag-semana-body');
-  if (body) {
+  const scroll = document.getElementById('ag-semana-scroll');
+  if (scroll) {
     const scrollTop = (Math.max(HORA_INI, hAhora || HORA_INI) - HORA_INI - 1) * PX_HORA;
-    body.scrollTop = Math.max(0, scrollTop);
+    scroll.scrollTop = Math.max(0, scrollTop);
   }
 }
 
