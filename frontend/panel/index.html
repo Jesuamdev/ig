@@ -1367,6 +1367,7 @@ tr:hover td{background:#FAFAFE}
         <textarea id="mc-notas-int" class="form-input" rows="2" placeholder="Solo visible para agentes..."></textarea>
       </div>
     </div>
+    <div id="mc-error-msg" style="display:none;background:#fef2f2;border:1px solid #fecaca;border-radius:8px;padding:10px 14px;margin:0 20px 4px;font-size:13px;color:#b91c1c;line-height:1.4"></div>
     <div class="modal-footer">
       <button class="btn btn-danger btn-sm" id="mc-btn-eliminar" onclick="agendaEliminarCita()" style="display:none;margin-right:auto">Eliminar</button>
       <button class="btn btn-ghost" onclick="cerrarModalCita()">Cancelar</button>
@@ -1847,7 +1848,9 @@ async function api(method, path, body) {
   if (body) opts.body = JSON.stringify(body);
   const r = await fetch(`${API}/api${path}`, opts);
   if (r.status === 401) { logout(); return null; }
-  return r.json();
+  const data = await r.json().catch(() => ({}));
+  if (!r.ok) throw new Error(data.message || `Error ${r.status}`);
+  return data;
 }
 
 // apiFetch(path, fetchOptions) — devuelve Response crudo para hacer r.ok / r.json()
@@ -5475,6 +5478,7 @@ function agendaAbrirModalNuevaCita(fechaHoraStr) {
   mcSelColor(document.querySelector('.mc-color-opt[data-color="#7C5CFC"]'));
 
   agendaLlenarSelects();
+  document.getElementById('mc-error-msg').style.display = 'none';
   document.getElementById('modal-cita').style.display = 'flex';
 }
 
@@ -5502,6 +5506,7 @@ async function agendaVerCita(id) {
   const colorBtn = document.querySelector(`.mc-color-opt[data-color="${cita.color || '#7C5CFC'}"]`);
   if (colorBtn) mcSelColor(colorBtn);
 
+  document.getElementById('mc-error-msg').style.display = 'none';
   document.getElementById('modal-cita').style.display = 'flex';
 }
 
@@ -5593,7 +5598,15 @@ async function agendaGuardarCita() {
     cerrarModalCita();
     await agendaCargar();
   } catch (err) {
-    toast('Error: ' + err.message, 'err');
+    // Mostrar error de solapamiento de forma destacada dentro del modal
+    const msgEl = document.getElementById('mc-error-msg');
+    if (msgEl) {
+      msgEl.textContent = err.message;
+      msgEl.style.display = '';
+      setTimeout(() => { msgEl.style.display = 'none'; }, 6000);
+    } else {
+      toast('⚠️ ' + err.message, 'err');
+    }
   }
 }
 

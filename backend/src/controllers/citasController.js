@@ -91,7 +91,10 @@ async function crearCita(req, res) {
     `, [agente_id, fecha_inicio, fecha_fin]);
 
     if (overlap.rows.length) {
-      return res.status(409).json({ message: 'Ya existe una cita en ese horario para este agente' });
+      return res.status(409).json({
+        message: 'El agente ya tiene una cita en ese horario. Por favor elige otro horario o selecciona un agente diferente.',
+        code: 'HORARIO_OCUPADO'
+      });
     }
 
     const { rows } = await query(`
@@ -145,6 +148,32 @@ async function actualizarCita(req, res) {
           estado, notas, notas_internas, color, tipo } = req.body;
 
   try {
+    // Verificar solapamiento al cambiar horario o agente (excluir la cita actual)
+    if ((fecha_inicio || fecha_fin) && agente_id !== undefined) {
+      const { rows: current } = await query(
+        `SELECT agente_id, fecha_inicio, fecha_fin FROM citas WHERE id=$1`, [id]
+      );
+      if (current.length) {
+        const ag  = agente_id  || current[0].agente_id;
+        const ini = fecha_inicio || current[0].fecha_inicio;
+        const fin = fecha_fin    || current[0].fecha_fin;
+        if (ag) {
+          const overlap = await query(`
+            SELECT id FROM citas
+            WHERE id != $1 AND agente_id = $2
+              AND estado NOT IN ('cancelada')
+              AND tsrange(fecha_inicio, fecha_fin) && tsrange($3::timestamp, $4::timestamp)
+          `, [id, ag, ini, fin]);
+          if (overlap.rows.length) {
+            return res.status(409).json({
+              message: 'El agente ya tiene una cita en ese horario. Por favor elige otro horario o selecciona un agente diferente.',
+              code: 'HORARIO_OCUPADO'
+            });
+          }
+        }
+      }
+    }
+
     const campos = [];
     const vals   = [];
     let   i      = 1;
