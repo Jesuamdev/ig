@@ -867,6 +867,52 @@ tr:hover td{background:#FAFAFE}
   .cfg-panel-header>.btn{margin-left:0}
   .sidebar{width:220px;left:-220px}
 }
+
+/* ── AGENDA CALENDAR ──────────────────────────────────────────────────────── */
+.ag-view-btn{background:transparent;border:none;color:var(--text2);padding:5px 12px;border-radius:6px;cursor:pointer;font-size:12px;font-weight:500}
+.ag-view-btn.active{background:var(--bg-white);color:var(--purple);box-shadow:0 1px 4px rgba(0,0,0,.1)}
+
+/* Mes */
+.ag-mes-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:0;border-left:1px solid var(--border);border-top:1px solid var(--border)}
+.ag-mes-dow{text-align:center;font-size:11px;font-weight:600;color:var(--text3);padding:10px 4px;background:var(--bg-white);border-right:1px solid var(--border);border-bottom:1px solid var(--border);text-transform:uppercase;letter-spacing:.5px}
+.ag-mes-dia{border-right:1px solid var(--border);border-bottom:1px solid var(--border);min-height:100px;padding:4px;cursor:pointer;background:var(--bg-white);transition:background .15s;position:relative;vertical-align:top}
+.ag-mes-dia:hover{background:var(--bg)}
+.ag-mes-dia.otro-mes{background:#f9f9fb;opacity:.6}
+.ag-mes-dia.hoy .ag-dia-num{background:var(--purple);color:white;border-radius:50%;width:24px;height:24px;display:flex;align-items:center;justify-content:center}
+.ag-dia-num{font-size:12px;font-weight:600;color:var(--text2);width:24px;height:24px;display:flex;align-items:center;justify-content:center;margin-bottom:4px}
+.ag-evento{font-size:11px;padding:2px 6px;border-radius:4px;margin-bottom:2px;cursor:pointer;color:white;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-weight:500}
+.ag-evento:hover{opacity:.85}
+.ag-mas{font-size:10px;color:var(--text3);padding:1px 4px;cursor:pointer}
+.ag-mas:hover{color:var(--purple)}
+
+/* Semana */
+.ag-semana-wrap{display:flex;min-width:0}
+.ag-semana-horas{flex-shrink:0;width:52px;border-right:1px solid var(--border);background:var(--bg-white)}
+.ag-semana-cols{display:grid;flex:1}
+.ag-semana-header{display:grid;background:var(--bg-white);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:5}
+.ag-semana-col-hdr{text-align:center;padding:10px 4px;font-size:11px;font-weight:600;border-right:1px solid var(--border)}
+.ag-semana-col-hdr.hoy{color:var(--purple)}
+.ag-semana-col-hdr span{display:block;font-size:18px;font-weight:700;margin-top:2px}
+.ag-semana-col-hdr span.hoy-num{background:var(--purple);color:white;border-radius:50%;width:32px;height:32px;display:flex;align-items:center;justify-content:center;margin:2px auto 0}
+.ag-hora-label{height:60px;display:flex;align-items:flex-start;justify-content:flex-end;padding-right:8px;padding-top:4px;font-size:10px;color:var(--text3);box-sizing:border-box}
+.ag-semana-body{display:flex;position:relative}
+.ag-semana-body-cols{display:grid;flex:1}
+.ag-dia-col{border-right:1px solid var(--border);position:relative}
+.ag-hora-line{height:60px;border-bottom:1px solid var(--border);box-sizing:border-box}
+.ag-hora-half{height:30px;border-bottom:1px dashed rgba(0,0,0,.06);box-sizing:border-box}
+.ag-cita-block{position:absolute;left:2px;right:2px;border-radius:6px;padding:4px 6px;cursor:pointer;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,.15);z-index:2;font-size:11px;color:white;font-weight:500;transition:opacity .15s}
+.ag-cita-block:hover{opacity:.85;z-index:3}
+.ag-cita-block .ag-cb-title{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ag-cita-block .ag-cb-hora{font-size:10px;opacity:.85;margin-top:1px}
+.ag-now-line{position:absolute;left:0;right:0;height:2px;background:var(--red,#EF4444);z-index:4;pointer-events:none}
+.ag-now-line::before{content:'';position:absolute;left:-4px;top:-4px;width:10px;height:10px;border-radius:50%;background:var(--red,#EF4444)}
+
+/* Colores cita */
+.mc-color-opt{width:24px;height:24px;border-radius:50%;cursor:pointer;border:3px solid transparent;transition:border-color .15s}
+.mc-color-opt.selected{border-color:white;box-shadow:0 0 0 2px var(--purple)}
+
+/* Horarios config */
+.ag-horario-row{display:grid;grid-template-columns:100px 1fr 1fr 60px;gap:8px;align-items:center;padding:8px 0;border-bottom:1px solid var(--border)}
 </style>
 </head>
 <body>
@@ -934,6 +980,11 @@ tr:hover td{background:#FAFAFE}
   <div class="s-item" onclick="showView('plantillas')" id="nav-plantillas">
     <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
     <span class="s-item-text">Plantillas</span>
+  </div>
+
+  <div class="s-item" onclick="showView('agenda')" id="nav-agenda">
+    <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+    <span class="s-item-text">Agenda</span>
   </div>
 
   <div class="s-section">Sistema</div>
@@ -1192,6 +1243,251 @@ tr:hover td{background:#FAFAFE}
 <!-- ═══════════════════════════════════════════════════════════════════════════
      VIEW: REPORTES
 ═══════════════════════════════════════════════════════════════════════════ -->
+<div class="view" id="view-agenda">
+  <div class="content-area" style="padding:0">
+    <!-- Toolbar -->
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:16px 20px 12px;border-bottom:1px solid var(--border);background:var(--bg-white)">
+      <div style="display:flex;align-items:center;gap:12px">
+        <div class="page-title" style="margin:0">Agenda</div>
+        <div style="display:flex;gap:4px">
+          <button class="btn btn-ghost btn-sm" onclick="agendaNavAnterior()">‹</button>
+          <button class="btn btn-ghost btn-sm" id="ag-titulo" onclick="agendaHoy()" style="min-width:160px;font-weight:600"></button>
+          <button class="btn btn-ghost btn-sm" onclick="agendaNavSiguiente()">›</button>
+        </div>
+        <button class="btn btn-ghost btn-sm" onclick="agendaHoy()">Hoy</button>
+      </div>
+      <div style="display:flex;gap:8px;align-items:center">
+        <div style="display:flex;gap:2px;background:var(--bg);border-radius:8px;padding:3px">
+          <button id="ag-btn-mes"    class="btn btn-sm ag-view-btn active" onclick="agendaSetVista('mes')">Mes</button>
+          <button id="ag-btn-semana" class="btn btn-sm ag-view-btn"        onclick="agendaSetVista('semana')">Semana</button>
+          <button id="ag-btn-dia"    class="btn btn-sm ag-view-btn"        onclick="agendaSetVista('dia')">Día</button>
+        </div>
+        <select id="ag-filtro-agente" class="form-input" style="padding:6px 10px;font-size:12px" onchange="agendaCargar()">
+          <option value="">Todos los agentes</option>
+        </select>
+        <button class="btn btn-primary btn-sm" onclick="agendaAbrirModalNuevaCita()">+ Nueva cita</button>
+        <button class="btn btn-ghost btn-sm" onclick="agendaAbrirConfiguracion()" title="Configuración">⚙️</button>
+      </div>
+    </div>
+
+    <!-- Calendario -->
+    <div id="ag-calendar-wrap" style="height:calc(100vh - 130px);overflow:auto;background:var(--bg)">
+      <div id="ag-calendar"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ── Modal nueva/editar cita ─────────────────────────────────────────────── -->
+<div class="modal-overlay" id="modal-cita" style="display:none">
+  <div class="modal" style="width:520px;max-height:90vh;overflow-y:auto">
+    <div class="modal-header">
+      <div class="modal-title" id="modal-cita-titulo">Nueva Cita</div>
+      <button class="modal-close" onclick="cerrarModalCita()">×</button>
+    </div>
+    <div class="modal-body" style="display:flex;flex-direction:column;gap:14px">
+      <input type="hidden" id="mc-id">
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+        <div>
+          <label class="form-label">Fecha inicio *</label>
+          <input type="datetime-local" id="mc-fecha-inicio" class="form-input" onchange="mcAutoFin()">
+        </div>
+        <div>
+          <label class="form-label">Fecha fin *</label>
+          <input type="datetime-local" id="mc-fecha-fin" class="form-input">
+        </div>
+      </div>
+
+      <div>
+        <label class="form-label">Servicio</label>
+        <select id="mc-servicio" class="form-input" onchange="mcOnServicio()">
+          <option value="">Sin servicio</option>
+        </select>
+      </div>
+
+      <div>
+        <label class="form-label">Cliente</label>
+        <select id="mc-cliente" class="form-input">
+          <option value="">Sin cliente</option>
+        </select>
+      </div>
+
+      <div>
+        <label class="form-label">Agente responsable</label>
+        <select id="mc-agente" class="form-input"></select>
+      </div>
+
+      <div>
+        <label class="form-label">Título (opcional)</label>
+        <input type="text" id="mc-titulo" class="form-input" placeholder="Ej: Consulta inicial">
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+        <div>
+          <label class="form-label">Tipo</label>
+          <select id="mc-tipo" class="form-input">
+            <option value="cita">Cita</option>
+            <option value="reunion">Reunión</option>
+            <option value="llamada">Llamada</option>
+            <option value="otro">Otro</option>
+          </select>
+        </div>
+        <div>
+          <label class="form-label">Estado</label>
+          <select id="mc-estado" class="form-input">
+            <option value="confirmada">Confirmada</option>
+            <option value="pendiente">Pendiente</option>
+            <option value="cancelada">Cancelada</option>
+            <option value="completada">Completada</option>
+            <option value="no_asistio">No asistió</option>
+          </select>
+        </div>
+      </div>
+
+      <div>
+        <label class="form-label">Color</label>
+        <div style="display:flex;gap:8px;flex-wrap:wrap" id="mc-colores">
+          <span class="mc-color-opt" data-color="#7C5CFC" style="background:#7C5CFC" onclick="mcSelColor(this)"></span>
+          <span class="mc-color-opt" data-color="#10B981" style="background:#10B981" onclick="mcSelColor(this)"></span>
+          <span class="mc-color-opt" data-color="#3B82F6" style="background:#3B82F6" onclick="mcSelColor(this)"></span>
+          <span class="mc-color-opt" data-color="#F59E0B" style="background:#F59E0B" onclick="mcSelColor(this)"></span>
+          <span class="mc-color-opt" data-color="#EF4444" style="background:#EF4444" onclick="mcSelColor(this)"></span>
+          <span class="mc-color-opt" data-color="#EC4899" style="background:#EC4899" onclick="mcSelColor(this)"></span>
+          <span class="mc-color-opt" data-color="#6B7280" style="background:#6B7280" onclick="mcSelColor(this)"></span>
+        </div>
+      </div>
+
+      <div>
+        <label class="form-label">Notas</label>
+        <textarea id="mc-notas" class="form-input" rows="2" placeholder="Notas visibles para el cliente..."></textarea>
+      </div>
+
+      <div>
+        <label class="form-label">Notas internas</label>
+        <textarea id="mc-notas-int" class="form-input" rows="2" placeholder="Solo visible para agentes..."></textarea>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-danger btn-sm" id="mc-btn-eliminar" onclick="agendaEliminarCita()" style="display:none;margin-right:auto">Eliminar</button>
+      <button class="btn btn-ghost" onclick="cerrarModalCita()">Cancelar</button>
+      <button class="btn btn-primary" onclick="agendaGuardarCita()">Guardar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── Modal configuración agenda ─────────────────────────────────────────── -->
+<div class="modal-overlay" id="modal-agenda-config" style="display:none">
+  <div class="modal" style="width:600px;max-height:90vh;overflow-y:auto">
+    <div class="modal-header">
+      <div class="modal-title">Configuración de Agenda</div>
+      <button class="modal-close" onclick="document.getElementById('modal-agenda-config').style.display='none'">×</button>
+    </div>
+    <div class="modal-body">
+      <div style="display:flex;gap:8px;margin-bottom:16px">
+        <button class="pl-tab active" onclick="switchAgendaConfigTab('horarios',this)">Horarios</button>
+        <button class="pl-tab" onclick="switchAgendaConfigTab('servicios',this)">Servicios</button>
+        <button class="pl-tab" onclick="switchAgendaConfigTab('bloqueos',this)">Bloqueos</button>
+      </div>
+
+      <!-- Horarios -->
+      <div id="ag-cfg-horarios">
+        <p style="font-size:12px;color:var(--text3);margin-bottom:12px">Horario Miami (ET) — Lunes a Viernes 8am–5pm por defecto</p>
+        <div id="ag-horarios-grid"></div>
+        <button class="btn btn-primary btn-sm" style="margin-top:12px" onclick="agendaGuardarHorarios()">Guardar horarios</button>
+      </div>
+
+      <!-- Servicios -->
+      <div id="ag-cfg-servicios" style="display:none">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+          <span style="font-size:13px;font-weight:600">Servicios disponibles</span>
+          <button class="btn btn-primary btn-sm" onclick="agendaAbrirModalServicio()">+ Nuevo</button>
+        </div>
+        <div id="ag-servicios-lista"></div>
+      </div>
+
+      <!-- Bloqueos -->
+      <div id="ag-cfg-bloqueos" style="display:none">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+          <span style="font-size:13px;font-weight:600">Días/horas bloqueadas</span>
+          <button class="btn btn-primary btn-sm" onclick="agendaAbrirModalBloqueo()">+ Bloquear</button>
+        </div>
+        <div id="ag-bloqueos-lista"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── Modal servicio ──────────────────────────────────────────────────────── -->
+<div class="modal-overlay" id="modal-servicio-agenda" style="display:none">
+  <div class="modal" style="width:420px">
+    <div class="modal-header">
+      <div class="modal-title" id="ms-titulo">Nuevo Servicio</div>
+      <button class="modal-close" onclick="document.getElementById('modal-servicio-agenda').style.display='none'">×</button>
+    </div>
+    <div class="modal-body" style="display:flex;flex-direction:column;gap:12px">
+      <input type="hidden" id="ms-id">
+      <div>
+        <label class="form-label">Nombre *</label>
+        <input type="text" id="ms-nombre" class="form-input" placeholder="Ej: Consulta Contable">
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+        <div>
+          <label class="form-label">Duración (min)</label>
+          <input type="number" id="ms-duracion" class="form-input" value="60" min="15" step="15">
+        </div>
+        <div>
+          <label class="form-label">Intervalo slot (min)</label>
+          <input type="number" id="ms-intervalo" class="form-input" value="30" min="15" step="15">
+        </div>
+      </div>
+      <div>
+        <label class="form-label">Precio ($)</label>
+        <input type="number" id="ms-precio" class="form-input" value="0" min="0" step="0.01">
+      </div>
+      <div>
+        <label class="form-label">Color</label>
+        <input type="color" id="ms-color" value="#7C5CFC" style="height:36px;width:100%;border:1px solid var(--border);border-radius:8px;cursor:pointer">
+      </div>
+      <div>
+        <label class="form-label">Descripción</label>
+        <textarea id="ms-descripcion" class="form-input" rows="2"></textarea>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="document.getElementById('modal-servicio-agenda').style.display='none'">Cancelar</button>
+      <button class="btn btn-primary" onclick="agendaGuardarServicio()">Guardar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── Modal bloqueo ───────────────────────────────────────────────────────── -->
+<div class="modal-overlay" id="modal-bloqueo-agenda" style="display:none">
+  <div class="modal" style="width:380px">
+    <div class="modal-header">
+      <div class="modal-title">Bloquear disponibilidad</div>
+      <button class="modal-close" onclick="document.getElementById('modal-bloqueo-agenda').style.display='none'">×</button>
+    </div>
+    <div class="modal-body" style="display:flex;flex-direction:column;gap:12px">
+      <div>
+        <label class="form-label">Desde *</label>
+        <input type="datetime-local" id="mb-inicio" class="form-input">
+      </div>
+      <div>
+        <label class="form-label">Hasta *</label>
+        <input type="datetime-local" id="mb-fin" class="form-input">
+      </div>
+      <div>
+        <label class="form-label">Motivo</label>
+        <input type="text" id="mb-motivo" class="form-input" placeholder="Ej: Vacaciones, Feriado...">
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="document.getElementById('modal-bloqueo-agenda').style.display='none'">Cancelar</button>
+      <button class="btn btn-primary" onclick="agendaGuardarBloqueo()">Guardar</button>
+    </div>
+  </div>
+</div>
+
 <div class="view" id="view-reportes">
   <div class="content-area">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">
@@ -1567,7 +1863,7 @@ function showView(view) {
   document.querySelectorAll('.s-item').forEach(n => n.classList.remove('active'));
   document.getElementById(`view-${view}`)?.classList.add('active');
   document.getElementById(`nav-${view}`)?.classList.add('active');
-  const loaders = { clientes: cargarClientes, archivos: cargarArchivos, dashboard: cargarDashboard, pagos: cargarPagos, agentes: cargarAgentes };
+  const loaders = { clientes: cargarClientes, archivos: cargarArchivos, dashboard: cargarDashboard, pagos: cargarPagos, agentes: cargarAgentes, agenda: agendaInit };
   loaders[view]?.();
   if (view === 'chats') {
     if ('Notification' in window && Notification.permission === 'default') Notification.requestPermission();
@@ -4661,6 +4957,753 @@ function initCallSocket(socket) {
     toast('Llamada rechazada');
     if (CallManager.getState() !== 'idle') CallManager.cancelar();
   });
+}
+</script>
+
+<script>
+// ══════════════════════════════════════════════════════════════════════════════
+// AGENDA — Sistema de citas/calendario
+// Timezone: America/New_York (Miami ET)
+// ══════════════════════════════════════════════════════════════════════════════
+const AG = {
+  vista:     'mes',       // 'mes' | 'semana' | 'dia'
+  hoy:       new Date(),
+  cursor:    new Date(),  // fecha base de navegación
+  citas:     [],
+  servicios: [],
+  clientes:  [],
+  agentes:   [],
+  colorSel:  '#7C5CFC',
+  _initDone: false,
+};
+
+const DIAS_ES  = ['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
+const DIAS_FULL= ['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'];
+const MESES_ES = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+
+// ── Formateo ─────────────────────────────────────────────────────────────────
+function agFmtFecha(d) {
+  return d.toLocaleDateString('es',{ month:'long', year:'numeric', timeZone:'America/New_York' });
+}
+function agFmtHora(d) {
+  return new Date(d).toLocaleTimeString('en-US',{ hour:'numeric', minute:'2-digit', hour12:true, timeZone:'America/New_York' });
+}
+function agDateKey(d) {
+  // YYYY-MM-DD en ET
+  return new Date(d).toLocaleDateString('en-CA',{ timeZone:'America/New_York' });
+}
+function agToDatetimeLocal(d) {
+  // Convierte Date a string "YYYY-MM-DDTHH:MM" en ET para inputs
+  const et = new Date(d).toLocaleString('en-CA',{ timeZone:'America/New_York', hour12:false }).replace(',','');
+  const [date, time] = et.split(' ');
+  return `${date}T${time.substring(0,5)}`;
+}
+function agFromDatetimeLocal(s) {
+  // Parsea "YYYY-MM-DDTHH:MM" como ET → ISO UTC
+  if (!s) return null;
+  // Crear fecha asumiendo ET
+  const [datePart, timePart] = s.split('T');
+  const [y,m,day] = datePart.split('-').map(Number);
+  const [h,min]   = timePart.split(':').map(Number);
+  // Uso de Intl para obtener offset ET
+  const tmpDate = new Date(y, m-1, day, h, min);
+  const etStr   = tmpDate.toLocaleString('en-US',{ timeZone:'America/New_York' });
+  const utcStr  = tmpDate.toUTCString();
+  // Calcular offset
+  const etDate  = new Date(etStr + ' UTC');
+  const diffMs  = tmpDate.getTime() - etDate.getTime() + tmpDate.getTime();
+  // Construir ISO string directamente
+  const pad = n => String(n).padStart(2,'0');
+  return `${y}-${pad(m)}-${pad(day)}T${pad(h)}:${pad(min)}:00`;
+}
+
+// ── Init ──────────────────────────────────────────────────────────────────────
+async function agendaInit() {
+  if (!AG._initDone) {
+    AG.cursor = new Date();
+    AG._initDone = true;
+    await Promise.all([agendaCargarServicios(), agendaCargarClientes(), agendaCargarAgentes()]);
+    agendaLlenarFiltroAgentes();
+    agendaLlenarSelects();
+  }
+  agendaActualizarTitulo();
+  await agendaCargar();
+}
+
+async function agendaCargarServicios() {
+  try {
+    AG.servicios = await api('GET','/agenda/servicios');
+  } catch { AG.servicios = []; }
+}
+
+async function agendaCargarClientes() {
+  try {
+    const r = await api('GET','/clientes?limit=500');
+    AG.clientes = Array.isArray(r) ? r : (r.clientes || []);
+  } catch { AG.clientes = []; }
+}
+
+async function agendaCargarAgentes() {
+  try {
+    AG.agentes = await api('GET','/agentes') || [];
+  } catch { AG.agentes = []; }
+}
+
+function agendaLlenarFiltroAgentes() {
+  const sel = document.getElementById('ag-filtro-agente');
+  if (!sel) return;
+  const cur = sel.value;
+  sel.innerHTML = '<option value="">Todos los agentes</option>';
+  AG.agentes.forEach(a => {
+    sel.innerHTML += `<option value="${a.id}" ${a.id===cur?'selected':''}>${a.nombre}</option>`;
+  });
+}
+
+function agendaLlenarSelects() {
+  // Servicios
+  const msSvc = document.getElementById('mc-servicio');
+  if (msSvc) {
+    msSvc.innerHTML = '<option value="">Sin servicio</option>';
+    AG.servicios.forEach(s => msSvc.innerHTML += `<option value="${s.id}">${s.nombre} (${s.duracion_minutos}min)</option>`);
+  }
+  // Clientes
+  const msCli = document.getElementById('mc-cliente');
+  if (msCli) {
+    msCli.innerHTML = '<option value="">Sin cliente</option>';
+    AG.clientes.forEach(c => msCli.innerHTML += `<option value="${c.id}">${c.nombre} ${c.apellido||''}</option>`);
+  }
+  // Agentes
+  const msAg = document.getElementById('mc-agente');
+  if (msAg) {
+    msAg.innerHTML = '';
+    AG.agentes.forEach(a => msAg.innerHTML += `<option value="${a.id}">${a.nombre}</option>`);
+    // Default: agente actual
+    const myId = document.getElementById('s-user-name')?.dataset?.id;
+    if (myId) msAg.value = myId;
+  }
+}
+
+// ── Carga de citas ────────────────────────────────────────────────────────────
+async function agendaCargar() {
+  const { inicio, fin } = agRangoVista();
+  const agenteId = document.getElementById('ag-filtro-agente')?.value || '';
+  try {
+    let url = `/citas?fecha_inicio=${inicio.toISOString()}&fecha_fin=${fin.toISOString()}`;
+    if (agenteId) url += `&agente_id=${agenteId}`;
+    AG.citas = await api('GET', url);
+    agendaRenderizar();
+  } catch (err) {
+    console.error('Error cargando citas:', err);
+  }
+}
+
+function agRangoVista() {
+  const c = AG.cursor;
+  if (AG.vista === 'mes') {
+    const inicio = new Date(c.getFullYear(), c.getMonth(), 1);
+    const fin    = new Date(c.getFullYear(), c.getMonth()+1, 0, 23, 59, 59);
+    return { inicio, fin };
+  } else if (AG.vista === 'semana') {
+    const dow   = c.getDay();
+    const inicio= new Date(c); inicio.setDate(c.getDate() - dow); inicio.setHours(0,0,0,0);
+    const fin   = new Date(inicio); fin.setDate(inicio.getDate()+6); fin.setHours(23,59,59,999);
+    return { inicio, fin };
+  } else {
+    const inicio = new Date(c); inicio.setHours(0,0,0,0);
+    const fin    = new Date(c); fin.setHours(23,59,59,999);
+    return { inicio, fin };
+  }
+}
+
+// ── Navegación ────────────────────────────────────────────────────────────────
+function agendaNavAnterior() {
+  const c = AG.cursor;
+  if (AG.vista === 'mes')    { c.setMonth(c.getMonth()-1); }
+  else if (AG.vista === 'semana') { c.setDate(c.getDate()-7); }
+  else                       { c.setDate(c.getDate()-1); }
+  agendaActualizarTitulo();
+  agendaCargar();
+}
+function agendaNavSiguiente() {
+  const c = AG.cursor;
+  if (AG.vista === 'mes')    { c.setMonth(c.getMonth()+1); }
+  else if (AG.vista === 'semana') { c.setDate(c.getDate()+7); }
+  else                       { c.setDate(c.getDate()+1); }
+  agendaActualizarTitulo();
+  agendaCargar();
+}
+function agendaHoy() {
+  AG.cursor = new Date();
+  agendaActualizarTitulo();
+  agendaCargar();
+}
+function agendaSetVista(v) {
+  AG.vista = v;
+  document.querySelectorAll('.ag-view-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById(`ag-btn-${v}`)?.classList.add('active');
+  agendaActualizarTitulo();
+  agendaCargar();
+}
+function agendaActualizarTitulo() {
+  const c = AG.cursor;
+  const t = document.getElementById('ag-titulo');
+  if (!t) return;
+  if (AG.vista === 'mes') {
+    t.textContent = `${MESES_ES[c.getMonth()]} ${c.getFullYear()}`;
+  } else if (AG.vista === 'semana') {
+    const dow = c.getDay();
+    const lun = new Date(c); lun.setDate(c.getDate()-dow+1);
+    const sab = new Date(c); sab.setDate(c.getDate()-dow+7);
+    t.textContent = `${lun.getDate()} – ${sab.getDate()} ${MESES_ES[sab.getMonth()]} ${sab.getFullYear()}`;
+  } else {
+    t.textContent = `${DIAS_FULL[c.getDay()]} ${c.getDate()} ${MESES_ES[c.getMonth()]}`;
+  }
+}
+
+// ── Render principal ──────────────────────────────────────────────────────────
+function agendaRenderizar() {
+  if (AG.vista === 'mes')    return agRenderMes();
+  if (AG.vista === 'semana') return agRenderSemana();
+  if (AG.vista === 'dia')    return agRenderDia();
+}
+
+// ── Render MES ────────────────────────────────────────────────────────────────
+function agRenderMes() {
+  const c     = AG.cursor;
+  const primerDia = new Date(c.getFullYear(), c.getMonth(), 1);
+  const ultDia    = new Date(c.getFullYear(), c.getMonth()+1, 0);
+  const startDow  = primerDia.getDay();
+  const hoyKey    = agDateKey(AG.hoy);
+
+  let html = '<div class="ag-mes-grid">';
+  // Cabecera días semana (Lun..Dom)
+  const dowLabels = ['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
+  dowLabels.forEach(d => html += `<div class="ag-mes-dow">${d}</div>`);
+
+  // Rellenar celdas
+  let dia = 1 - startDow;
+  for (let row = 0; row < 6; row++) {
+    for (let col = 0; col < 7; col++, dia++) {
+      const fecha   = new Date(c.getFullYear(), c.getMonth(), dia);
+      const key     = agDateKey(fecha);
+      const esHoy   = key === hoyKey;
+      const otroMes = dia < 1 || dia > ultDia.getDate();
+      const citasDia= AG.citas.filter(ct => agDateKey(ct.fecha_inicio) === key);
+
+      html += `<div class="ag-mes-dia${otroMes?' otro-mes':''}${esHoy?' hoy':''}"
+                    onclick="agendaDiaClick('${key}', event)" style="cursor:pointer">`;
+      html += `<div class="ag-dia-num">${fecha.getDate()}</div>`;
+
+      const max = 3;
+      citasDia.slice(0, max).forEach(ct => {
+        const color = ct.color || ct.servicio_color || '#7C5CFC';
+        const label = ct.titulo || ct.servicio_nombre || ct.cliente_nombre || 'Cita';
+        html += `<div class="ag-evento" style="background:${color}" title="${label}"
+                      onclick="event.stopPropagation();agendaVerCita('${ct.id}')">${agFmtHora(ct.fecha_inicio)} ${label}</div>`;
+      });
+      if (citasDia.length > max) {
+        html += `<div class="ag-mas" onclick="event.stopPropagation();agendaSetVistaDia('${key}')">+${citasDia.length - max} más</div>`;
+      }
+      html += '</div>';
+    }
+    // Evitar filas vacías
+    if (dia > ultDia.getDate() + 7) break;
+  }
+  html += '</div>';
+  document.getElementById('ag-calendar').innerHTML = html;
+}
+
+function agendaDiaClick(key, e) {
+  // Click en celda vacía → nueva cita en ese día
+  if (e.target.classList.contains('ag-evento') || e.target.classList.contains('ag-mas')) return;
+  const fecha = key + 'T09:00';
+  agendaAbrirModalNuevaCita(fecha);
+}
+
+function agendaSetVistaDia(key) {
+  AG.cursor = new Date(key + 'T12:00:00');
+  agendaSetVista('dia');
+}
+
+// ── Render SEMANA ─────────────────────────────────────────────────────────────
+function agRenderSemana() {
+  const c   = AG.cursor;
+  const dow = c.getDay();
+  const lun = new Date(c); lun.setDate(c.getDate() - dow); // domingo inicio
+  const hoyKey = agDateKey(AG.hoy);
+
+  const HORA_INI = 8;  // 8am
+  const HORA_FIN = 18; // 6pm (muestra hasta las 5pm + buffer)
+  const PX_HORA  = 60;
+
+  let html = `<div class="ag-semana-wrap">`;
+  // Columna de horas
+  html += `<div class="ag-semana-horas"><div style="height:50px;border-bottom:1px solid var(--border)"></div>`;
+  for (let h = HORA_INI; h < HORA_FIN; h++) {
+    const label = h < 12 ? `${h}am` : h === 12 ? '12pm' : `${h-12}pm`;
+    html += `<div class="ag-hora-label">${label}</div>`;
+  }
+  html += '</div>';
+
+  // Columnas de días
+  html += `<div style="flex:1;display:flex;flex-direction:column;overflow:hidden">`;
+  // Header
+  html += `<div class="ag-semana-header" style="display:grid;grid-template-columns:repeat(7,1fr)">`;
+  for (let i = 0; i < 7; i++) {
+    const d    = new Date(lun); d.setDate(lun.getDate() + i);
+    const key  = agDateKey(d);
+    const esHoy= key === hoyKey;
+    html += `<div class="ag-semana-col-hdr${esHoy?' hoy':''}">
+      ${DIAS_ES[d.getDay()]}
+      <span class="${esHoy?'hoy-num':''}">${d.getDate()}</span>
+    </div>`;
+  }
+  html += '</div>';
+
+  // Body
+  html += `<div class="ag-semana-body" style="overflow-y:auto;flex:1">`;
+  // Líneas de horas
+  html += `<div class="ag-semana-horas" style="flex-shrink:0;width:52px">`;
+  for (let h = HORA_INI; h < HORA_FIN; h++) html += `<div class="ag-hora-line"></div>`;
+  html += '</div>';
+
+  html += `<div style="flex:1;display:grid;grid-template-columns:repeat(7,1fr);position:relative">`;
+  for (let i = 0; i < 7; i++) {
+    const d   = new Date(lun); d.setDate(lun.getDate() + i);
+    const key = agDateKey(d);
+    html += `<div class="ag-dia-col" onclick="agendaDiaColClick('${key}',event,this)" data-fecha="${key}">`;
+    for (let h = HORA_INI; h < HORA_FIN; h++) html += `<div class="ag-hora-line"></div>`;
+
+    // Citas del día
+    const citasDia = AG.citas.filter(ct => agDateKey(ct.fecha_inicio) === key);
+    citasDia.forEach(ct => {
+      const ini  = new Date(ct.fecha_inicio);
+      const fin  = new Date(ct.fecha_fin);
+      const hIni = ini.getHours() + ini.getMinutes()/60;
+      const hFin = fin.getHours() + fin.getMinutes()/60;
+      const top  = (hIni - HORA_INI) * PX_HORA;
+      const h    = Math.max((hFin - hIni) * PX_HORA, 24);
+      const color= ct.color || ct.servicio_color || '#7C5CFC';
+      const label= ct.titulo || ct.servicio_nombre || ct.cliente_nombre || 'Cita';
+      html += `<div class="ag-cita-block" style="top:${top}px;height:${h}px;background:${color}"
+                    onclick="event.stopPropagation();agendaVerCita('${ct.id}')">
+        <div class="ag-cb-title">${label}</div>
+        <div class="ag-cb-hora">${agFmtHora(ct.fecha_inicio)} – ${agFmtHora(ct.fecha_fin)}</div>
+      </div>`;
+    });
+    html += '</div>';
+  }
+
+  // Línea de hora actual
+  const ahora = new Date();
+  const hAhora = ahora.getHours() + ahora.getMinutes()/60;
+  if (hAhora >= HORA_INI && hAhora <= HORA_FIN) {
+    const top = (hAhora - HORA_INI) * PX_HORA;
+    html += `<div class="ag-now-line" style="top:${top}px;left:0;right:0"></div>`;
+  }
+
+  html += '</div></div></div></div>';
+  document.getElementById('ag-calendar').innerHTML = html;
+
+  // Scroll a hora actual o 8am
+  const body = document.querySelector('.ag-semana-body');
+  if (body) {
+    const scrollTop = (Math.max(HORA_INI, hAhora || HORA_INI) - HORA_INI - 1) * PX_HORA;
+    body.scrollTop = Math.max(0, scrollTop);
+  }
+}
+
+function agendaDiaColClick(key, e, col) {
+  if (e.target.classList.contains('ag-cita-block') || e.target.closest('.ag-cita-block')) return;
+  // Calcular hora clickeada
+  const rect   = col.getBoundingClientRect();
+  const relY   = e.clientY - rect.top;
+  const hClick = 8 + relY / 60;
+  const hh     = Math.floor(hClick);
+  const mm     = Math.round((hClick - hh) / 0.5) * 30;
+  const pad    = n => String(n).padStart(2,'0');
+  const fechaHora = `${key}T${pad(hh)}:${pad(mm === 60 ? 0 : mm)}`;
+  agendaAbrirModalNuevaCita(fechaHora);
+}
+
+// ── Render DÍA ────────────────────────────────────────────────────────────────
+function agRenderDia() {
+  const c      = AG.cursor;
+  const key    = agDateKey(c);
+  const HORA_INI = 8;
+  const HORA_FIN = 18;
+  const PX_HORA  = 80;
+
+  let html = `<div style="display:flex">`;
+  // Horas
+  html += `<div style="width:64px;flex-shrink:0;border-right:1px solid var(--border);background:var(--bg-white)">`;
+  html += `<div style="height:50px;border-bottom:1px solid var(--border)"></div>`;
+  for (let h = HORA_INI; h < HORA_FIN; h++) {
+    const label = h < 12 ? `${h}am` : h === 12 ? '12pm' : `${h-12}pm`;
+    html += `<div style="height:${PX_HORA}px;display:flex;align-items:flex-start;justify-content:flex-end;padding:4px 8px 0;font-size:11px;color:var(--text3);box-sizing:border-box;border-bottom:1px solid var(--border)">${label}</div>`;
+  }
+  html += '</div>';
+
+  // Columna día
+  html += `<div style="flex:1;position:relative;background:var(--bg-white)">`;
+  html += `<div style="height:50px;border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 16px;font-weight:600;font-size:14px">${DIAS_FULL[c.getDay()]} ${c.getDate()} de ${MESES_ES[c.getMonth()]}</div>`;
+  for (let h = HORA_INI; h < HORA_FIN; h++) {
+    html += `<div style="height:${PX_HORA}px;border-bottom:1px solid var(--border);cursor:pointer" onclick="agendaDiaHoraClick('${key}',${h})"></div>`;
+  }
+
+  const citasDia = AG.citas.filter(ct => agDateKey(ct.fecha_inicio) === key);
+  citasDia.forEach(ct => {
+    const ini  = new Date(ct.fecha_inicio);
+    const fin  = new Date(ct.fecha_fin);
+    const hIni = ini.getHours() + ini.getMinutes()/60;
+    const hFin = fin.getHours() + fin.getMinutes()/60;
+    const top  = 50 + (hIni - HORA_INI) * PX_HORA;
+    const h    = Math.max((hFin - hIni) * PX_HORA, 30);
+    const color= ct.color || ct.servicio_color || '#7C5CFC';
+    const label= ct.titulo || ct.servicio_nombre || ct.cliente_nombre || 'Cita';
+    const cli  = ct.cliente_nombre ? `${ct.cliente_nombre} ${ct.cliente_apellido||''}` : '';
+    html += `<div class="ag-cita-block" style="top:${top}px;height:${h}px;background:${color};left:8px;right:8px"
+                  onclick="agendaVerCita('${ct.id}')">
+      <div class="ag-cb-title" style="font-size:13px">${label}</div>
+      ${cli ? `<div style="font-size:11px;opacity:.85">${cli}</div>` : ''}
+      <div class="ag-cb-hora">${agFmtHora(ct.fecha_inicio)} – ${agFmtHora(ct.fecha_fin)}</div>
+    </div>`;
+  });
+
+  // Línea actual
+  const ahora = new Date();
+  if (agDateKey(ahora) === key) {
+    const hAhora = ahora.getHours() + ahora.getMinutes()/60;
+    const top = 50 + (hAhora - HORA_INI) * PX_HORA;
+    html += `<div class="ag-now-line" style="top:${top}px"></div>`;
+  }
+
+  html += '</div></div>';
+  document.getElementById('ag-calendar').innerHTML = html;
+}
+
+function agendaDiaHoraClick(key, h) {
+  const pad = n => String(n).padStart(2,'0');
+  agendaAbrirModalNuevaCita(`${key}T${pad(h)}:00`);
+}
+
+// ── Modal nueva/editar cita ───────────────────────────────────────────────────
+function agendaAbrirModalNuevaCita(fechaHoraStr) {
+  document.getElementById('mc-id').value = '';
+  document.getElementById('modal-cita-titulo').textContent = 'Nueva Cita';
+  document.getElementById('mc-btn-eliminar').style.display = 'none';
+
+  const ahora = fechaHoraStr || agToDatetimeLocal(new Date());
+  document.getElementById('mc-fecha-inicio').value = ahora;
+
+  // Fin por defecto: +1 hora
+  const finDate = new Date(ahora);
+  finDate.setHours(finDate.getHours() + 1);
+  document.getElementById('mc-fecha-fin').value = ahora.substring(0,11) + String(new Date(ahora).getHours()+1).padStart(2,'0') + ahora.substring(13);
+
+  document.getElementById('mc-servicio').value = '';
+  document.getElementById('mc-cliente').value  = '';
+  document.getElementById('mc-titulo').value   = '';
+  document.getElementById('mc-tipo').value     = 'cita';
+  document.getElementById('mc-estado').value   = 'confirmada';
+  document.getElementById('mc-notas').value    = '';
+  document.getElementById('mc-notas-int').value= '';
+
+  // Agente por defecto: usuario actual
+  mcSelColor(document.querySelector('.mc-color-opt[data-color="#7C5CFC"]'));
+
+  agendaLlenarSelects();
+  document.getElementById('modal-cita').style.display = 'flex';
+}
+
+async function agendaVerCita(id) {
+  const cita = AG.citas.find(c => c.id === id);
+  if (!cita) return;
+
+  document.getElementById('mc-id').value = cita.id;
+  document.getElementById('modal-cita-titulo').textContent = 'Editar Cita';
+  document.getElementById('mc-btn-eliminar').style.display = '';
+
+  agendaLlenarSelects();
+
+  document.getElementById('mc-fecha-inicio').value = agToDatetimeLocal(cita.fecha_inicio);
+  document.getElementById('mc-fecha-fin').value    = agToDatetimeLocal(cita.fecha_fin);
+  document.getElementById('mc-servicio').value     = cita.servicio_id || '';
+  document.getElementById('mc-cliente').value      = cita.cliente_id  || '';
+  document.getElementById('mc-agente').value       = cita.agente_id   || '';
+  document.getElementById('mc-titulo').value       = cita.titulo      || '';
+  document.getElementById('mc-tipo').value         = cita.tipo        || 'cita';
+  document.getElementById('mc-estado').value       = cita.estado      || 'confirmada';
+  document.getElementById('mc-notas').value        = cita.notas       || '';
+  document.getElementById('mc-notas-int').value    = cita.notas_internas || '';
+
+  const colorBtn = document.querySelector(`.mc-color-opt[data-color="${cita.color || '#7C5CFC'}"]`);
+  if (colorBtn) mcSelColor(colorBtn);
+
+  document.getElementById('modal-cita').style.display = 'flex';
+}
+
+function cerrarModalCita() {
+  document.getElementById('modal-cita').style.display = 'none';
+}
+
+function mcSelColor(el) {
+  document.querySelectorAll('.mc-color-opt').forEach(e => e.classList.remove('selected'));
+  el?.classList.add('selected');
+  AG.colorSel = el?.dataset?.color || '#7C5CFC';
+}
+
+function mcOnServicio() {
+  const svcId = document.getElementById('mc-servicio').value;
+  const svc   = AG.servicios.find(s => s.id === svcId);
+  if (!svc) return;
+  // Ajustar fin según duración del servicio
+  const ini = document.getElementById('mc-fecha-inicio').value;
+  if (!ini) return;
+  const d = new Date(ini);
+  d.setMinutes(d.getMinutes() + svc.duracion_minutos);
+  document.getElementById('mc-fecha-fin').value = `${String(d.getFullYear())}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}T${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
+  // Color del servicio
+  const colorBtn = document.querySelector(`.mc-color-opt[data-color="${svc.color}"]`);
+  if (colorBtn) mcSelColor(colorBtn); else AG.colorSel = svc.color;
+}
+
+function mcAutoFin() {
+  const ini = document.getElementById('mc-fecha-inicio').value;
+  const svcId = document.getElementById('mc-servicio').value;
+  const svc   = AG.servicios.find(s => s.id === svcId);
+  const dur   = svc ? svc.duracion_minutos : 60;
+  if (!ini) return;
+  const d = new Date(ini);
+  d.setMinutes(d.getMinutes() + dur);
+  document.getElementById('mc-fecha-fin').value = `${String(d.getFullYear())}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}T${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
+}
+
+async function agendaGuardarCita() {
+  const id         = document.getElementById('mc-id').value;
+  const fechaIni   = document.getElementById('mc-fecha-inicio').value;
+  const fechaFin   = document.getElementById('mc-fecha-fin').value;
+  const servicioId = document.getElementById('mc-servicio').value;
+  const clienteId  = document.getElementById('mc-cliente').value;
+  const agenteId   = document.getElementById('mc-agente').value;
+  const titulo     = document.getElementById('mc-titulo').value;
+  const tipo       = document.getElementById('mc-tipo').value;
+  const estado     = document.getElementById('mc-estado').value;
+  const notas      = document.getElementById('mc-notas').value;
+  const notasInt   = document.getElementById('mc-notas-int').value;
+
+  if (!fechaIni || !fechaFin) return toast('Fecha inicio y fin son requeridos','err');
+
+  const payload = {
+    fecha_inicio:    fechaIni,
+    fecha_fin:       fechaFin,
+    servicio_id:     servicioId  || null,
+    cliente_id:      clienteId   || null,
+    agente_id:       agenteId    || null,
+    titulo:          titulo      || null,
+    tipo, estado,
+    notas:           notas       || null,
+    notas_internas:  notasInt    || null,
+    color:           AG.colorSel || '#7C5CFC',
+  };
+
+  try {
+    if (id) {
+      await api('PUT',  `/citas/${id}`, payload);
+      toast('Cita actualizada ✓');
+    } else {
+      await api('POST', '/citas', payload);
+      toast('Cita creada ✓');
+    }
+    cerrarModalCita();
+    await agendaCargar();
+  } catch (err) {
+    toast('Error: ' + err.message, 'err');
+  }
+}
+
+async function agendaEliminarCita() {
+  const id = document.getElementById('mc-id').value;
+  if (!id || !confirm('¿Eliminar esta cita?')) return;
+  try {
+    await api('DELETE', `/citas/${id}`);
+    toast('Cita eliminada');
+    cerrarModalCita();
+    await agendaCargar();
+  } catch (err) {
+    toast('Error: ' + err.message, 'err');
+  }
+}
+
+// ── Configuración ─────────────────────────────────────────────────────────────
+function agendaAbrirConfiguracion() {
+  switchAgendaConfigTab('horarios', document.querySelector('#modal-agenda-config .pl-tab'));
+  agendaCargarConfigHorarios();
+  agendaCargarConfigServicios();
+  agendaCargarConfigBloqueos();
+  document.getElementById('modal-agenda-config').style.display = 'flex';
+}
+
+function switchAgendaConfigTab(tab, btn) {
+  ['horarios','servicios','bloqueos'].forEach(t => {
+    document.getElementById(`ag-cfg-${t}`).style.display = t === tab ? '' : 'none';
+  });
+  document.querySelectorAll('#modal-agenda-config .pl-tab').forEach(b => b.classList.remove('active'));
+  btn?.classList.add('active');
+}
+
+async function agendaCargarConfigHorarios() {
+  const grid = document.getElementById('ag-horarios-grid');
+  if (!grid) return;
+  let disp = [];
+  try { disp = await api('GET','/agenda/disponibilidad'); } catch {}
+
+  const DIAS_NAMES = ['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'];
+  let html = `<div class="ag-horario-row" style="font-weight:600;font-size:11px;color:var(--text3);text-transform:uppercase">
+    <span>Día</span><span>Hora inicio</span><span>Hora fin</span><span>Activo</span>
+  </div>`;
+
+  for (let i = 1; i <= 5; i++) { // Lun-Vie
+    const d = disp.find(x => x.dia_semana === i) || { dia_semana: i, hora_inicio: '08:00', hora_fin: '17:00', activo: true };
+    const hi = (d.hora_inicio||'08:00').substring(0,5);
+    const hf = (d.hora_fin  ||'17:00').substring(0,5);
+    html += `<div class="ag-horario-row">
+      <span style="font-weight:500">${DIAS_NAMES[i]}</span>
+      <input type="time" class="form-input" id="ag-h-ini-${i}" value="${hi}" style="padding:5px 8px">
+      <input type="time" class="form-input" id="ag-h-fin-${i}" value="${hf}" style="padding:5px 8px">
+      <input type="checkbox" id="ag-h-act-${i}" ${d.activo!==false?'checked':''} style="width:18px;height:18px">
+    </div>`;
+  }
+  grid.innerHTML = html;
+}
+
+async function agendaGuardarHorarios() {
+  const horarios = [];
+  for (let i = 1; i <= 5; i++) {
+    horarios.push({
+      dia_semana:  i,
+      hora_inicio: document.getElementById(`ag-h-ini-${i}`)?.value || '08:00',
+      hora_fin:    document.getElementById(`ag-h-fin-${i}`)?.value || '17:00',
+      activo:      document.getElementById(`ag-h-act-${i}`)?.checked !== false,
+    });
+  }
+  try {
+    await api('POST','/agenda/disponibilidad',{ horarios });
+    toast('Horarios guardados ✓');
+  } catch (err) { toast('Error: '+err.message,'err'); }
+}
+
+async function agendaCargarConfigServicios() {
+  await agendaCargarServicios();
+  const el = document.getElementById('ag-servicios-lista');
+  if (!el) return;
+  if (!AG.servicios.length) { el.innerHTML = '<p style="color:var(--text3);font-size:13px">No hay servicios. Crea uno.</p>'; return; }
+  el.innerHTML = AG.servicios.map(s => `
+    <div style="display:flex;align-items:center;gap:12px;padding:10px;border:1px solid var(--border);border-radius:8px;margin-bottom:8px;background:var(--bg-white)">
+      <div style="width:14px;height:14px;border-radius:50%;background:${s.color};flex-shrink:0"></div>
+      <div style="flex:1">
+        <div style="font-weight:600;font-size:13px">${s.nombre}</div>
+        <div style="font-size:11px;color:var(--text3)">${s.duracion_minutos}min · Intervalo: ${s.intervalo_minutos}min · $${s.precio||0}</div>
+      </div>
+      <button class="btn btn-ghost btn-sm" onclick="agendaEditarServicio('${s.id}')">Editar</button>
+      <button class="btn btn-danger btn-sm" onclick="agendaEliminarServicio('${s.id}')">✕</button>
+    </div>
+  `).join('');
+}
+
+function agendaAbrirModalServicio(id) {
+  const s = id ? AG.servicios.find(x => x.id === id) : null;
+  document.getElementById('ms-id').value           = s?.id || '';
+  document.getElementById('ms-titulo').textContent  = s ? 'Editar Servicio' : 'Nuevo Servicio';
+  document.getElementById('ms-nombre').value        = s?.nombre || '';
+  document.getElementById('ms-duracion').value      = s?.duracion_minutos || 60;
+  document.getElementById('ms-intervalo').value     = s?.intervalo_minutos || 30;
+  document.getElementById('ms-precio').value        = s?.precio || 0;
+  document.getElementById('ms-color').value         = s?.color || '#7C5CFC';
+  document.getElementById('ms-descripcion').value   = s?.descripcion || '';
+  document.getElementById('modal-servicio-agenda').style.display = 'flex';
+}
+
+function agendaEditarServicio(id) { agendaAbrirModalServicio(id); }
+
+async function agendaGuardarServicio() {
+  const id = document.getElementById('ms-id').value;
+  const payload = {
+    nombre:            document.getElementById('ms-nombre').value,
+    duracion_minutos:  parseInt(document.getElementById('ms-duracion').value),
+    intervalo_minutos: parseInt(document.getElementById('ms-intervalo').value),
+    precio:            parseFloat(document.getElementById('ms-precio').value) || 0,
+    color:             document.getElementById('ms-color').value,
+    descripcion:       document.getElementById('ms-descripcion').value || null,
+  };
+  if (!payload.nombre) return toast('Nombre requerido','err');
+  try {
+    if (id) await api('PUT',`/agenda/servicios/${id}`, payload);
+    else    await api('POST','/agenda/servicios', payload);
+    toast('Servicio guardado ✓');
+    document.getElementById('modal-servicio-agenda').style.display = 'none';
+    await agendaCargarConfigServicios();
+    agendaLlenarSelects();
+  } catch (err) { toast('Error: '+err.message,'err'); }
+}
+
+async function agendaEliminarServicio(id) {
+  if (!confirm('¿Eliminar este servicio?')) return;
+  try {
+    await api('DELETE',`/agenda/servicios/${id}`);
+    toast('Servicio eliminado');
+    await agendaCargarConfigServicios();
+    agendaLlenarSelects();
+  } catch (err) { toast('Error: '+err.message,'err'); }
+}
+
+async function agendaCargarConfigBloqueos() {
+  let bloqueos = [];
+  try { bloqueos = await api('GET','/agenda/bloqueos'); } catch {}
+  const el = document.getElementById('ag-bloqueos-lista');
+  if (!el) return;
+  if (!bloqueos.length) { el.innerHTML = '<p style="color:var(--text3);font-size:13px">No hay bloqueos activos.</p>'; return; }
+  el.innerHTML = bloqueos.map(b => `
+    <div style="display:flex;align-items:center;gap:12px;padding:10px;border:1px solid var(--border);border-radius:8px;margin-bottom:8px;background:var(--bg-white)">
+      <div style="flex:1">
+        <div style="font-weight:600;font-size:13px">${b.motivo || 'Bloqueado'}</div>
+        <div style="font-size:11px;color:var(--text3)">${agFmtHora(b.fecha_inicio)} – ${agFmtHora(b.fecha_fin)}</div>
+      </div>
+      <button class="btn btn-danger btn-sm" onclick="agendaEliminarBloqueo('${b.id}')">✕</button>
+    </div>
+  `).join('');
+}
+
+function agendaAbrirModalBloqueo() {
+  const now = agToDatetimeLocal(new Date());
+  document.getElementById('mb-inicio').value = now;
+  document.getElementById('mb-fin').value    = now;
+  document.getElementById('mb-motivo').value = '';
+  document.getElementById('modal-bloqueo-agenda').style.display = 'flex';
+}
+
+async function agendaGuardarBloqueo() {
+  const ini = document.getElementById('mb-inicio').value;
+  const fin  = document.getElementById('mb-fin').value;
+  if (!ini || !fin) return toast('Fechas requeridas','err');
+  try {
+    await api('POST','/agenda/bloqueos',{
+      fecha_inicio: ini, fecha_fin: fin,
+      motivo: document.getElementById('mb-motivo').value || null,
+    });
+    toast('Bloqueo guardado ✓');
+    document.getElementById('modal-bloqueo-agenda').style.display = 'none';
+    await agendaCargarConfigBloqueos();
+  } catch (err) { toast('Error: '+err.message,'err'); }
+}
+
+async function agendaEliminarBloqueo(id) {
+  if (!confirm('¿Eliminar bloqueo?')) return;
+  try {
+    await api('DELETE',`/agenda/bloqueos/${id}`);
+    toast('Bloqueo eliminado');
+    await agendaCargarConfigBloqueos();
+  } catch (err) { toast('Error: '+err.message,'err'); }
 }
 </script>
 </body>

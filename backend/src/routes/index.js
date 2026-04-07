@@ -704,6 +704,28 @@ router.get('/system/status', authenticate, soloAdmin, async (req, res) => {
   } catch (err) { res.status(500).json({ status: 'error', message: err.message }); }
 });
 
+// ── AGENDA / CITAS ────────────────────────────────────────────────────────────
+const citasCtrl = require('../controllers/citasController');
+
+router.get ('/citas',                    authenticate, soloAgente, citasCtrl.listarCitas);
+router.get ('/citas/slots',              authenticate, soloAgente, citasCtrl.obtenerSlots);
+router.get ('/citas/:id',                authenticate, soloAgente, citasCtrl.obtenerCita);
+router.post('/citas',                    authenticate, soloAgente, citasCtrl.crearCita);
+router.put ('/citas/:id',                authenticate, soloAgente, citasCtrl.actualizarCita);
+router.delete('/citas/:id',             authenticate, soloAgente, citasCtrl.eliminarCita);
+
+router.get ('/agenda/servicios',         authenticate, soloAgente, citasCtrl.listarServicios);
+router.post('/agenda/servicios',         authenticate, soloAdmin,  citasCtrl.crearServicio);
+router.put ('/agenda/servicios/:id',     authenticate, soloAdmin,  citasCtrl.actualizarServicio);
+router.delete('/agenda/servicios/:id',  authenticate, soloAdmin,  citasCtrl.eliminarServicio);
+
+router.get ('/agenda/disponibilidad',    authenticate, soloAgente, citasCtrl.obtenerDisponibilidad);
+router.post('/agenda/disponibilidad',    authenticate, soloAgente, citasCtrl.guardarDisponibilidad);
+
+router.get ('/agenda/bloqueos',          authenticate, soloAgente, citasCtrl.listarBloqueos);
+router.post('/agenda/bloqueos',          authenticate, soloAgente, citasCtrl.crearBloqueo);
+router.delete('/agenda/bloqueos/:id',   authenticate, soloAgente, citasCtrl.eliminarBloqueo);
+
 // ── LLAMADAS ──────────────────────────────────────────────────────────────────
 router.post('/llamadas',           authenticate, soloAgente, llamadasCtrl.iniciarLlamada);
 router.put ('/llamadas/:id',       authenticate, soloAgente, llamadasCtrl.actualizarLlamada);
