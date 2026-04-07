@@ -282,16 +282,20 @@ async function runMigrations() {
         created_at      TIMESTAMP DEFAULT NOW()
       );
       CREATE TABLE IF NOT EXISTS chatbot_sesiones (
-        id             UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-        chatbot_id     UUID REFERENCES chatbots(id) ON DELETE CASCADE,
-        contacto_id    UUID REFERENCES contactos(id) ON DELETE CASCADE,
-        nodo_actual_id UUID REFERENCES chatbot_nodos(id) ON DELETE SET NULL,
-        estado         VARCHAR(20) DEFAULT 'activo'
-                         CHECK (estado IN ('activo','completado','abandonado','error')),
-        datos          JSONB DEFAULT '{}',
-        created_at     TIMESTAMP DEFAULT NOW(),
-        updated_at     TIMESTAMP DEFAULT NOW()
+        id               UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        chatbot_id       UUID REFERENCES chatbots(id) ON DELETE CASCADE,
+        contacto_id      UUID REFERENCES contactos(id) ON DELETE CASCADE,
+        conversacion_id  UUID REFERENCES conversaciones(id) ON DELETE SET NULL,
+        nodo_actual_id   UUID REFERENCES chatbot_nodos(id) ON DELETE SET NULL,
+        estado           VARCHAR(20) DEFAULT 'activo'
+                           CHECK (estado IN ('activo','completado','abandonado','transferido','error')),
+        datos            JSONB DEFAULT '{}',
+        mensajes_enviados INTEGER DEFAULT 0,
+        created_at       TIMESTAMP DEFAULT NOW(),
+        updated_at       TIMESTAMP DEFAULT NOW()
       );
+      ALTER TABLE chatbot_sesiones ADD COLUMN IF NOT EXISTS conversacion_id UUID REFERENCES conversaciones(id) ON DELETE SET NULL;
+      ALTER TABLE chatbot_sesiones ADD COLUMN IF NOT EXISTS mensajes_enviados INTEGER DEFAULT 0;
       CREATE TABLE IF NOT EXISTS base_conocimiento (
         id          UUID PRIMARY KEY DEFAULT gen_random_uuid(),
         titulo      VARCHAR(200) NOT NULL,
