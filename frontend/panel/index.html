@@ -2675,13 +2675,13 @@ function abrirModalEtiquetas(convId, etiquetasActuales) {
     <p style="font-size:13px;color:var(--text2);margin-bottom:16px">Selecciona las etiquetas para organizar esta conversación:</p>
     <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:20px">
       ${ETIQUETAS_DISPONIBLES.map(e=>`
-        <label style="cursor:pointer">
+        <div>
           <input type="checkbox" id="et-${e.val}" ${actuales.includes(e.val)?'checked':''} style="display:none">
           <span id="et-lbl-${e.val}" onclick="toggleEtiqueta('${e.val}')"
             style="display:inline-flex;align-items:center;padding:6px 14px;border-radius:20px;font-size:13px;font-weight:500;cursor:pointer;border:2px solid transparent;background:${actuales.includes(e.val)?e.color:'var(--bg)'};color:${actuales.includes(e.val)?e.text:'var(--text3)'};border-color:${actuales.includes(e.val)?e.text:'transparent'};transition:all .15s">
             ${e.label}
           </span>
-        </label>`).join('')}
+        </div>`).join('')}
     </div>
     <div class="modal-actions">
       <button class="btn btn-ghost" onclick="closeModal()">Cancelar</button>
@@ -6065,8 +6065,9 @@ async function ctxAsignarAgente() {
   const convId = _ctxConvId;
 
   // Cargar agentes
-  const agentes = await api('GET', '/agentes');
-  if (!agentes?.length) { toast('No hay agentes disponibles', 'err'); return; }
+  let agentes;
+  try { agentes = await api('GET', '/agentes'); } catch(err) { toast('Error al cargar agentes: ' + err.message, 'err'); return; }
+  if (!Array.isArray(agentes) || !agentes.length) { toast('No hay agentes disponibles', 'err'); return; }
 
   openModal('👤 Asignar agente', `
     <p style="font-size:13px;color:var(--text2);margin-bottom:16px">Selecciona el agente para esta conversación:</p>
