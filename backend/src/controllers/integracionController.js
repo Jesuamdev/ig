@@ -163,7 +163,7 @@ const listarIntegraciones = async (req, res) => {
 const upsertIntegracion = async (req, res) => {
   try {
     const { tipo, nombre, configuracion } = req.body;
-    const tipos_validos = ['google_sheets','shopify','woocommerce','zapier','make','n8n','stripe','openai'];
+    const tipos_validos = ['google_sheets','shopify','woocommerce','zapier','make','n8n','stripe','openai','amelia','groq'];
     if (!tipos_validos.includes(tipo)) return res.status(400).json({ message: 'Tipo inválido' });
 
     const { rows: exist } = await query(`SELECT id FROM integraciones WHERE tipo=$1`, [tipo]);

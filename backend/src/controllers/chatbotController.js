@@ -124,7 +124,7 @@ const actualizarConexion = async (req, res) => {
     const { condicion } = req.body;
     const { rows } = await query(
       `UPDATE chatbot_conexiones SET condicion=$1 WHERE id=$2 AND chatbot_id=$3 RETURNING *`,
-      [condicion ? JSON.stringify(condicion) : null, req.params.conexion_id, req.params.chatbot_id]
+      [condicion || null, req.params.conexion_id, req.params.chatbot_id]
     );
     if (!rows.length) return res.status(404).json({ message: 'Conexión no encontrada' });
     res.json(rows[0]);
