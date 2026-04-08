@@ -186,6 +186,12 @@ router.put ('/conversaciones/:id/leer',        authenticate, soloAgente, async (
     res.json({ success: true });
   } catch (err) { res.status(500).json({ message: err.message }); }
 });
+router.delete('/conversaciones/:id',           authenticate, soloAgente, async (req, res) => {
+  try {
+    await query(`DELETE FROM conversaciones WHERE id=$1`, [req.params.id]);
+    res.json({ success: true });
+  } catch (err) { res.status(500).json({ message: err.message }); }
+});
 
 // ── AGENTES ───────────────────────────────────────────────────────────────────
 router.get ('/agentes', authenticate, soloAgente, async (req, res) => {

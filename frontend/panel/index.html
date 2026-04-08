@@ -167,6 +167,25 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);height:100vh
 .chat-time{font-size:10px;color:var(--text3)}
 .chat-unread{min-width:18px;height:18px;background:var(--purple);color:white;font-size:9px;font-weight:700;border-radius:9px;display:flex;align-items:center;justify-content:center;padding:0 4px}
 
+/* ── CONTEXT MENU ────────────────────────────────────────────────────────── */
+#ctx-menu{
+  position:fixed;z-index:9999;background:var(--bg-white);border:1px solid var(--border);
+  border-radius:10px;box-shadow:0 8px 24px rgba(0,0,0,.12);padding:4px;min-width:180px;
+  display:none;
+}
+#ctx-menu.show{display:block}
+.ctx-item{
+  display:flex;align-items:center;gap:8px;padding:8px 12px;border-radius:7px;
+  font-size:13px;cursor:pointer;color:var(--text);transition:background .1s;
+}
+.ctx-item:hover{background:var(--bg-hover)}
+.ctx-item.danger{color:var(--red)}
+.ctx-item.danger:hover{background:#fee2e2}
+.ctx-sep{height:1px;background:var(--border);margin:4px 0}
+/* etiquetas en la lista */
+.chat-tags{display:flex;flex-wrap:wrap;gap:3px;margin-top:4px}
+.chat-tag{font-size:10px;padding:1px 6px;border-radius:8px;font-weight:500;line-height:1.5}
+
 /* ── CENTER (chat) ────────────────────────────────────────────────────────── */
 .pc{flex:1;display:flex;flex-direction:column;background:var(--bg);overflow:hidden}
 .pc-header{
@@ -967,7 +986,7 @@ tr:hover td{background:#FAFAFE}
 
   <div class="s-section">Automatización</div>
 
-  <div class="s-item" onclick="showView('chatbots')" id="nav-chatbots">
+  <div class="s-item" onclick="showView('chatbots')" id="nav-chatbots" style="display:none">
     <svg viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M12 2a4 4 0 0 1 4 4"/><path d="M8 2a4 4 0 0 0-4 4v1"/><circle cx="9" cy="16" r="1" fill="currentColor"/><circle cx="15" cy="16" r="1" fill="currentColor"/><line x1="12" y1="2" x2="12" y2="7"/></svg>
     <span class="s-item-text">Chatbots</span>
   </div>
@@ -1184,7 +1203,7 @@ tr:hover td{background:#FAFAFE}
 <!-- ═══════════════════════════════════════════════════════════════════════════
      VIEW: CHATBOTS
 ═══════════════════════════════════════════════════════════════════════════ -->
-<div class="view" id="view-chatbots">
+<div class="view" id="view-chatbots" style="display:none!important">
   <div class="content-area">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">
       <div class="page-title">Chatbots Inteligentes</div>
@@ -1506,7 +1525,7 @@ tr:hover td{background:#FAFAFE}
     <div style="display:flex;gap:8px;margin:14px 0">
       <button class="pl-tab active" onclick="switchRepTab('general',this)">General</button>
       <button class="pl-tab" onclick="switchRepTab('agentes',this)">Agentes</button>
-      <button class="pl-tab" onclick="switchRepTab('chatbots',this)">Chatbots</button>
+      <button class="pl-tab" onclick="switchRepTab('chatbots',this)" style="display:none">Chatbots</button>
     </div>
 
     <div id="rep-tab-general">
@@ -2012,11 +2031,20 @@ function renderWAList(convs) {
     const prev   = c.ultimo_mensaje || 'Sin mensajes';
     const hasFile= prev.startsWith('📎');
     const unread = (c.mensajes_sin_leer > 0 && c.id != currentConvId) ? `<div class="chat-unread">${c.mensajes_sin_leer}</div>` : '';
-    return `<div class="chat-item" id="ci-${c.id}" onclick="abrirConv('${c.id}','${nombre.replace(/'/g,"\\'")}','${color}')">
+    const tags = (c.etiquetas||[]).map(val=>{
+      const e = ETIQUETAS_DISPONIBLES?.find(x=>x.val===val);
+      return e ? `<span class="chat-tag" style="background:${e.color};color:${e.text}">${e.label}</span>` : '';
+    }).join('');
+    const tagsHtml = tags ? `<div class="chat-tags">${tags}</div>` : '';
+    const nombreEsc = nombre.replace(/'/g,"\\'");
+    return `<div class="chat-item" id="ci-${c.id}"
+      onclick="abrirConv('${c.id}','${nombreEsc}','${color}')"
+      oncontextmenu="showCtxMenu(event,'${c.id}',${JSON.stringify(c.etiquetas||[])})">
       <div class="chat-av" style="background:${color}">${ini}</div>
       <div class="chat-info">
         <div class="chat-name">${nombre}</div>
         <div class="chat-prev ${hasFile?'file':''}">${prev.substring(0,45)}</div>
+        ${tagsHtml}
       </div>
       <div class="chat-meta">
         <div class="chat-time">${hora}</div>
@@ -6000,6 +6028,124 @@ function ameliaCopiarWebhook() {
     el.select(); document.execCommand('copy'); toast('URL copiada ✓');
   });
 }
+
+
+// ── MENÚ CONTEXTUAL DE CONVERSACIONES ────────────────────────────────────────
+let _ctxConvId = null;
+let _ctxEtiquetas = [];
+
+function showCtxMenu(e, convId, etiquetas) {
+  e.preventDefault();
+  e.stopPropagation();
+  _ctxConvId   = convId;
+  _ctxEtiquetas = etiquetas || [];
+
+  const menu = document.getElementById('ctx-menu');
+  menu.classList.add('show');
+
+  // Posición: evitar que se salga de la pantalla
+  const x = Math.min(e.clientX, window.innerWidth - 200);
+  const y = Math.min(e.clientY, window.innerHeight - 150);
+  menu.style.left = x + 'px';
+  menu.style.top  = y + 'px';
+}
+
+function hideCtxMenu() {
+  document.getElementById('ctx-menu')?.classList.remove('show');
+  _ctxConvId = null;
+}
+
+document.addEventListener('click', hideCtxMenu);
+document.addEventListener('keydown', e => { if(e.key==='Escape') hideCtxMenu(); });
+
+// Asignar agente desde menú contextual
+async function ctxAsignarAgente() {
+  hideCtxMenu();
+  if (!_ctxConvId) return;
+  const convId = _ctxConvId;
+
+  // Cargar agentes
+  const agentes = await api('GET', '/agentes');
+  if (!agentes?.length) { toast('No hay agentes disponibles', 'err'); return; }
+
+  openModal('👤 Asignar agente', `
+    <p style="font-size:13px;color:var(--text2);margin-bottom:16px">Selecciona el agente para esta conversación:</p>
+    <select id="ctx-agente-sel" style="width:100%;padding:9px 12px;border:1px solid var(--border);border-radius:8px;font-size:13px;font-family:var(--font);background:var(--bg)">
+      <option value="">Sin asignar</option>
+      ${agentes.map(a=>`<option value="${a.id}">${a.nombre} (${a.rol})</option>`).join('')}
+    </select>
+    <div class="modal-actions" style="margin-top:20px">
+      <button class="btn btn-ghost" onclick="closeModal()">Cancelar</button>
+      <button class="btn btn-primary" onclick="ctxGuardarAgente('${convId}')">Asignar</button>
+    </div>`);
+}
+
+async function ctxGuardarAgente(convId) {
+  const agenteId = document.getElementById('ctx-agente-sel')?.value || null;
+  let d;
+  try { d = await api('PUT', `/conversaciones/${convId}/asignar`, { agente_id: agenteId || null }); } catch(err) { toast(err.message||'Error al asignar','err'); return; }
+  if (d?.id) {
+    closeModal();
+    toast('Agente asignado ✓');
+    refrescarWAList();
+  } else {
+    toast(d?.message || 'Error al asignar', 'err');
+  }
+}
+
+// Etiquetar desde menú contextual
+function ctxEtiquetar() {
+  const convId   = _ctxConvId;
+  const etiquetas = _ctxEtiquetas;
+  hideCtxMenu();
+  if (!convId) return;
+  abrirModalEtiquetas(convId, etiquetas);
+}
+
+// Eliminar conversación desde menú contextual
+async function ctxEliminar() {
+  const convId = _ctxConvId;
+  hideCtxMenu();
+  if (!convId) return;
+
+  if (!confirm('¿Eliminar esta conversación? Se borrarán todos los mensajes asociados. Esta acción no se puede deshacer.')) return;
+
+  let d;
+  try { d = await api('DELETE', `/conversaciones/${convId}`); } catch(err) { toast(err.message||'Error al eliminar','err'); return; }
+  if (d?.success) {
+    toast('Conversación eliminada');
+    // Si estaba abierta, limpiar el centro
+    if (currentConvId === convId) {
+      currentConvId = null;
+      document.getElementById('wa-center').innerHTML = `
+        <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;color:var(--text3)">
+          <svg width="48" height="48" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24" style="margin-bottom:12px;opacity:.4"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+          <p style="font-size:14px">Selecciona una conversación</p>
+        </div>`;
+    }
+    refrescarWAList();
+  } else {
+    toast(d?.message || 'Error al eliminar', 'err');
+  }
+}
 </script>
+
+<!-- Menú contextual de conversaciones -->
+<div id="ctx-menu">
+  <div class="ctx-item" onclick="ctxAsignarAgente()">
+    <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+    Asignar agente
+  </div>
+  <div class="ctx-item" onclick="ctxEtiquetar()">
+    <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>
+    Etiquetar
+  </div>
+  <div class="ctx-sep"></div>
+  <div class="ctx-item danger" onclick="ctxEliminar()">
+    <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
+    Eliminar conversación
+  </div>
+</div>
+
 </body>
 </html>
