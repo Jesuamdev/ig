@@ -280,11 +280,28 @@ router.put('/contactos/:id', authenticate, soloAgente, async (req, res) => {
 
 // ── NOTIFICACIONES ─────────────────────────────────────────────────────────────
 router.get ('/notificaciones', authenticate, soloAgente, async (req, res) => {
-  const { rows } = await query(`SELECT * FROM notificaciones WHERE agente_id IS NULL ORDER BY created_at DESC LIMIT 50`);
+  const { rows } = await query(
+    `SELECT * FROM notificaciones WHERE (agente_id = $1 OR agente_id IS NULL) ORDER BY created_at DESC LIMIT 50`,
+    [req.user.id]
+  );
   res.json(rows);
+});
+router.get ('/notificaciones/unread-count', authenticate, soloAgente, async (req, res) => {
+  const { rows } = await query(
+    `SELECT COUNT(*) AS total FROM notificaciones WHERE (agente_id = $1 OR agente_id IS NULL) AND leida = FALSE`,
+    [req.user.id]
+  );
+  res.json({ total: parseInt(rows[0].total) });
 });
 router.put('/notificaciones/:id/leer', authenticate, async (req, res) => {
   await query(`UPDATE notificaciones SET leida=TRUE WHERE id=$1`, [req.params.id]);
+  res.json({ success: true });
+});
+router.put('/notificaciones/leer-todas', authenticate, soloAgente, async (req, res) => {
+  await query(
+    `UPDATE notificaciones SET leida=TRUE WHERE (agente_id = $1 OR agente_id IS NULL) AND leida=FALSE`,
+    [req.user.id]
+  );
   res.json({ success: true });
 });
 
